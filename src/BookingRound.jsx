@@ -1,211 +1,231 @@
-import React, { useState } from 'react';
-import { Container, Row, Col, Card, Button, Form } from 'react-bootstrap';
+import React, { useState,useEffect } from 'react';
+import { Container, Card, Button, Form } from 'react-bootstrap';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  CircularProgress,
+} from '@material-ui/core';
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import Cookies from 'js-cookie';
 
 const Booking = () => {
+  const [selectedDate, setSelectedDate] = useState('');
+  const [interChangeSource, setInterChangeSource] = useState('');
+  const [interChangeDestination, setInterChangeDestination] = useState('');
   const navigate = useNavigate();
-  const [bookingType, setBookingType] = useState('SingleTrip');
-  const [passengers, setPassengers] = useState([{ name: '', age: '', gender: '' }]);
-  const [returnPassengers, setReturnPassengers] = useState([{ name: '', age: '', gender: '' }]);
-  const [ticketCount, setTicketCount] = useState(1); // Initialize with one ticket
-  const [isRoundTripSelected, setIsRoundTripSelected] = useState(false);
-  const MAX_TICKETS = 5;
 
-  const handleBookingTypeChange = (e) => {
-    setBookingType(e.target.value);
-    setIsRoundTripSelected(e.target.value === 'RoundTrip');
-  };
+  const [flights, setFlights] = useState([]);
+  const [loading, setLoading] = useState(false);
+const [book,setBook] = useState();
+useEffect(() => {
+  async function fetchData() {
+    await fetchFlightsSchedules();
+  }
 
-  const handleAddPassenger = () => {
-    if (passengers.length < MAX_TICKETS && ticketCount < MAX_TICKETS) {
-      setPassengers([...passengers, { name: '', age: '', gender: '' }]);
-      setTicketCount(ticketCount + 1);
+  fetchData();
+}, []);
+  const fetchFlightsSchedules = async () => {
+    try {
+      setLoading(true);
+
+      const scheduleId = sessionStorage.getItem('desinationScheduleId');
+
+      const response = await axios.get(`https://localhost:7285/api/FlightSchedules/${scheduleId}`);
+
+      console.log(scheduleId)
+      
+
+      console.log(response.data);
+      // setScheduleId(response.data.scheduleId);
+      // setFlightName(response.data.flightName);
+
+      setInterChangeSource(response.data.destinationAirportId);
+      setInterChangeDestination(response.data.sourceAirportId);
+
+      setBook(response.data);
+      
+    } catch (error) {
+      console.error('Error fetching flights schedule:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleAddReturnPassenger = () => {
-    setReturnPassengers([...returnPassengers, { name: '', age: '', gender: '' }]);
-  };
+  
 
-  const handleDeletePassenger = (index) => {
-    const updatedPassengers = [...passengers];
-    updatedPassengers.splice(index, 1);
-    setPassengers(updatedPassengers);
-    setTicketCount(ticketCount - 1);
-  };
+  const fetchFlightsSchedule = async () => {
+    try {
+      
 
-  const handleDeleteReturnPassenger = (index) => {
-    const updatedReturnPassengers = [...returnPassengers];
-    updatedReturnPassengers.splice(index, 1);
-    setReturnPassengers(updatedReturnPassengers);
-  };
+      const sourceAirportId = await getAirportIdByCityName(interChangeSource);
+      const destinationAirportId = await getAirportIdByCityName(interChangeDestination);
 
-  const handlePassengerChange = (index, field, value) => {
-    const updatedPassengers = [...passengers];
-    updatedPassengers[index][field] = value;
-    setPassengers(updatedPassengers);
-  };
+      if (!sourceAirportId || !destinationAirportId) {
+        console.error('Error: sourceAirportId or destinationAirportId is null.');
+        return;
+      }
 
-  const handleReturnPassengerChange = (index, field, value) => {
-    const updatedReturnPassengers = [...returnPassengers];
-    updatedReturnPassengers[index][field] = value;
-    setReturnPassengers(updatedReturnPassengers);
-  };
+      const response = await axios.get(
+        `https://localhost:7285/api/HomePage?source=${sourceAirportId}&destination=${destinationAirportId}&travelDate=${selectedDate}`
+      );
 
-  const handleSubmit = () => {
-    // Store passenger details in Cookies
-    const flightTickets = passengers.map((passenger) => ({
-      bookingId: '',
-      scheduleId: sessionStorage.getItem('scheduleId'), // You may need to set the correct scheduleId here
-      name: passenger.name,
-      age: passenger.age, // Assuming age is a number
-      gender: passenger.gender,
-      seatNo: null, // You may need to set the correct seatNo here
-    }));
+      console.log(response.data);
 
-    if (isRoundTripSelected) {
-      const returnFlightTickets = returnPassengers.map((returnPassenger) => ({
-        bookingId: '',
-        scheduleId: sessionStorage.getItem('returnScheduleId'), // You may need to set the correct returnScheduleId here
-        name: returnPassenger.name,
-        age: returnPassenger.age,
-        gender: returnPassenger.gender,
-        seatNo: null,
-      }));
-
-      Cookies.set('returnFlightTickets', JSON.stringify(returnFlightTickets));
+      if (response.data && response.data.length > 0) {
+        setFlights(response.data);
+      } else {
+        console.error('Error: No schedule data found in the API response.');
+      }
+    } catch (error) {
+      console.error('Error fetching schedule details:', error);
     }
+  };
 
-    Cookies.set('flightTickets', JSON.stringify(flightTickets));
+  const getAirportIdByCityName = async (cityName) => {
+    try {
+      const airportResponse = await axios.get(
+        `https://localhost:7285/api/Airports/cityName/${cityName}`
+      );
 
-    // Perform any necessary actions before navigating to the seat booking page
-    // For now, just navigate to the seat booking page with passengers data
-    sessionStorage.setItem('bookingType', bookingType);
+      console.log(airportResponse);
 
-    navigate('/seats', { state: { bookingType, isRoundTripSelected } });
+      if (airportResponse.data && airportResponse.data.length > 0) {
+        return airportResponse.data;
+      } else {
+        console.error(`Error: No airport data found for ${cityName}.`);
+        return null;
+      }
+    } catch (error) {
+      console.error(`Error fetching airport details for ${cityName}:`, error);
+      return null;
+    }
+  };
+
+  const handleDateChange = (e) => {
+    setSelectedDate(e.target.value);
+  };
+
+  const handleScheduleSelect = async () => {
+
+    await fetchFlightsSchedule();
+  };
+
+  const handleSelectFlight = (scheduleId) => {
+    sessionStorage.setItem('returnScheduleId', scheduleId);
+    navigate('/round-trip-booking')
+    // Navigate to the seat booking page or perform other actions as needed
+  };
+
+  const convertDuration = (duration) => {
+    const [hours, minutes, seconds] = duration.split(':');
+    return `${parseInt(hours)} hours ${parseInt(minutes)} minutes`;
   };
 
   return (
     <Container className="mt-5">
-      <Row>
-        <Col>
-          <Card>
-            <Card.Body>
-              <Card.Title>Booking Form</Card.Title>
-              <Card.Text>No. of Tickets: {ticketCount}</Card.Text>
-              <Form>
-                <Form.Group className="mb-3">
-                  <Form.Label>Booking Type</Form.Label>
-                  <Form.Select value={bookingType} onChange={handleBookingTypeChange}>
-                    <option value="RoundTrip">Round Trip</option>
-                    <option value="SingleTrip">Single Trip</option>
-                  </Form.Select>
-                </Form.Group>
+      <Card>
+      {loading ? (
+              <div className="text-center mt-3">
+                <CircularProgress />
+              </div>
+            ) : (
+              <TableContainer component={Paper} className="mt-3">
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Flight Name</TableCell>
+                      <TableCell>Source </TableCell>
+                      <TableCell>Desination</TableCell>
+                      <TableCell>Flight Duration</TableCell>
+                      <TableCell>Action</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                  {book && book.length > 0 ? (
+  book.map((books) => (
+    <TableRow key={books.scheduleId}>
+      <TableCell>{books.flightName}</TableCell>
+      <TableCell>{books.sourceAirportId}</TableCell>
+      <TableCell>{books.destinationAirportId}</TableCell>
+      <TableCell>{new Date(books.dateTime).toLocaleDateString()}</TableCell>
+      <TableCell>{new Date(books.dateTime).toLocaleTimeString()}</TableCell>
+      <TableCell>{convertDuration(books.flightDuration)}</TableCell>
+     
+    </TableRow>
+  ))
+) : (
+  <TableRow>
+    <TableCell colSpan={6}>No data available</TableCell>
+  </TableRow>
+)}
 
-                {passengers.map((passenger, index) => (
-                  <div key={index}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Name</Form.Label>
-                      <Form.Control
-                        type="text"
-                        value={passenger.name}
-                        onChange={(e) => handlePassengerChange(index, 'name', e.target.value)}
-                      />
-                    </Form.Group>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Age</Form.Label>
-                      <Form.Control
-                        type="text"
-                        value={passenger.age}
-                        onChange={(e) => handlePassengerChange(index, 'age', e.target.value)}
-                      />
-                    </Form.Group>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Gender</Form.Label>
-                      <Form.Control
-                        as="select"
-                        value={passenger.gender}
-                        onChange={(e) => handlePassengerChange(index, 'gender', e.target.value)}
-                      >
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Other">Other</option>
-                      </Form.Control>
-                    </Form.Group>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
+        <Card.Body>
+          <Card.Title>Select Round Trip Flights</Card.Title>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Select Return Date</Form.Label>
+              <Form.Control type="date" value={selectedDate} onChange={handleDateChange} />
+            </Form.Group>
 
-                    <Button variant="danger" onClick={() => handleDeletePassenger(index)}>
-                      Delete Passenger
-                    </Button>
-                  </div>
-                ))}
+            <Button variant="primary" onClick={handleScheduleSelect}>
+              Select Schedule
+            </Button>
 
-                {isRoundTripSelected && (
-                  <>
-                    <Card.Title className="mt-3">Return Trip Passenger Details</Card.Title>
-                    {returnPassengers.map((returnPassenger, index) => (
-                      <div key={index}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Name</Form.Label>
-                          <Form.Control
-                            type="text"
-                            value={returnPassenger.name}
-                            onChange={(e) =>
-                              handleReturnPassengerChange(index, 'name', e.target.value)
-                            }
-                          />
-                        </Form.Group>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Age</Form.Label>
-                          <Form.Control
-                            type="text"
-                            value={returnPassenger.age}
-                            onChange={(e) =>
-                              handleReturnPassengerChange(index, 'age', e.target.value)
-                            }
-                          />
-                        </Form.Group>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Gender</Form.Label>
-                          <Form.Control
-                            as="select"
-                            value={returnPassenger.gender}
-                            onChange={(e) =>
-                              handleReturnPassengerChange(index, 'gender', e.target.value)
-                            }
-                          >
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="Other">Other</option>
-                          </Form.Control>
-                        </Form.Group>
-
-                        <Button
-                          variant="danger"
-                          onClick={() => handleDeleteReturnPassenger(index)}
-                        >
-                          Delete Return Passenger
-                        </Button>
-                      </div>
-                    ))}
-                    <Button variant="primary" onClick={handleAddReturnPassenger}>
-                      Add Return Passenger
-                    </Button>
-                  </>
-                )}
-
-                <Button variant="primary" onClick={handleAddPassenger}>
-                  Add Passenger
-                </Button>
-
-                <Button variant="success" onClick={handleSubmit}>
-                  Continue to Seat Booking
-                </Button>
-              </Form>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
+            {loading ? (
+              <div className="text-center mt-3">
+                <CircularProgress />
+              </div>
+            ) : (
+              <TableContainer component={Paper} className="mt-3">
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Flight Name</TableCell>
+                      <TableCell>Departure Date</TableCell>
+                      <TableCell>Departure Time</TableCell>
+                      <TableCell>Flight Duration</TableCell>
+                      <TableCell>Action</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {flights && flights.length > 0 ? (
+                      flights.map((flight) => (
+                        <TableRow key={flight.scheduleId}>
+                          <TableCell>{flight.flightName}</TableCell>
+                          <TableCell>{new Date(flight.dateTime).toLocaleDateString()}</TableCell>
+                          <TableCell>{new Date(flight.dateTime).toLocaleTimeString()}</TableCell>
+                          <TableCell>{convertDuration(flight.flightDuration)}</TableCell>
+                          <TableCell>
+                            <Button
+                              variant="success"
+                              onClick={() => handleSelectFlight(flight.scheduleId)}
+                            >
+                              Select Flight
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={5}>No data available</TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
+          </Form>
+        </Card.Body>
+      </Card>
     </Container>
   );
 };

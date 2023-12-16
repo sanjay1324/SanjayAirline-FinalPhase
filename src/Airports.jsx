@@ -16,7 +16,7 @@ import {
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import axiosInstance from './AxiosInstance';
-
+import Nav from './Navbar'
 const Airports = () => {
   const [data, setData] = useState([]);
   const [show, setShow] = useState(false);
@@ -144,7 +144,7 @@ const Airports = () => {
 
   return (
     <Fragment>
-      {/* <Nav /> */}
+      <Nav />
       <ToastContainer />
       <Container>
         <Grid container spacing={2}>

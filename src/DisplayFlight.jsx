@@ -47,7 +47,7 @@ const TableComponent = ({ flightSchedules, formatFlightDuration, formatDate, for
               <TableCell>{schedule.flightName}</TableCell>
               <TableCell>{schedule.sourceAirportId}</TableCell>
               <TableCell>{schedule.destinationAirportId}</TableCell>
-              <TableCell>{formatFlightDuration(schedule.flightDuration)}</TableCell>
+              <TableCell>{schedule.flightDuration}</TableCell>
               <TableCell>{formatDate(schedule.dateTime)}</TableCell>
               <TableCell>{formatTime(schedule.dateTime)}</TableCell>
               <TableCell>

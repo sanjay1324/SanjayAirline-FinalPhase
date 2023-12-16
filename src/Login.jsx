@@ -43,7 +43,7 @@ function Login() {
           const token = decodeToken(data.token);
           sessionStorage.setItem('token', token);
           toast.success('Welcome Admin');
-          navigate('/Airports');
+          navigate('/homepage');
         } 
         else {
           toast.error('Invalid username or password. Please try again.');
