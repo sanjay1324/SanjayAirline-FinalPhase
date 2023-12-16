@@ -108,6 +108,7 @@ sessionStorage.setItem('scheduleIds', JSON.stringify(scheduleIds));
   };
 
 
+
   return (
     <>
       <Navbar />
@@ -320,5 +321,60 @@ sessionStorage.setItem('scheduleIds', JSON.stringify(scheduleIds));
     </>
   );
 };
+
+// const getIntegratedFlightDetails = async(firstAirlines,secondAirlines,source,destination,dateTime) =>{
+//   const connectingFlights = Object.entries(firstAirlines).map(async ([firstAirlineName, firstAirline]) => {
+//     try{
+//       const firstResponse = await axios.get(`${firstAirline.apiPath}Integration/connectingflight/${source}/${destination}/${dateTime}`);
+//         const firstFlights = firstResponse.data.map(firstFlight => ({
+//           ...firstFlight,
+//           airlineName: firstAirlineName,
+//           apiPath: firstAirline.apiPath
+//         }));
+//         return firstFlights;
+
+//     }catch(error){
+//       console.error(error);
+//       throw error;
+//   }
+// });
+
+// if (connectingFlights && connectingFlights.length > 0) {
+//   const connectedFlights = await Promise.all(
+//     connectingFlights.map((firstFlight) => {
+//      const connectedFlight = Object.entries(secondAirlines).map(async ([secondAirlineName, secondAirline]) => {
+//           try {
+//             const secondResponse = await axios.get(`${secondAirline.apiPath}Integration/directflight/${firstFlight.destinationAirportId}/${destination}/${firstFlight.dateTime}`);
+//                     const secondFlights = secondResponse.data.map(secondFlight => ({
+//                       ...secondFlight,
+//                       airlineName: secondAirlineName,
+//                       apiPath: secondAirline.apiPath
+//                     }));
+//                     return secondFlights;
+//           } catch (error) {
+//             console.error(error)
+//           }
+//       }
+//       )
+
+//       if (connectedFlight) {
+//         return {
+//           FirstFlight: firstFlight,
+//           SecondFlight: connectedFlight,
+//         };
+//       }
+//       return null;
+//     })
+//   );
+
+
+//     const filteredConnectedFlights = connectedFlights.filter(
+//       (flight) => flight !== null
+//     );
+
+//     setFinalIntegratedConnectingFlights(filteredConnectedFlights);
+//     console.log(filteredConnectedFlights);
+//   }
+// }
 
 export default BookingComponent;

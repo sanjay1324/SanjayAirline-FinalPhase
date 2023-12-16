@@ -14,6 +14,8 @@ import RoundTripBooking from './RoundTripBooking'
 import ConnectingFlightSeaSelection from './ConnectingFlightSeaSelection'
 import History from './assets/TriedNewThings/Seatsupdates'
 import RoundTripSeatSelection from './RoundTripSeatSelection'
+
+import TableCell2 from './assets/TriedNewThings/TableCell2'
 function App() {
   return (
     <Router>
@@ -34,6 +36,7 @@ function App() {
          <Route path='/flight-details' element={<FlightDetails/>}/>
          <Route path='/flight-schedule' element={<FlightSchedule/>}/>
          <Route path='/history' element={<History/>}/>
+         <Route path='/ssss' element={<TableCell2/>}/>
 
         </Routes>
       </div>

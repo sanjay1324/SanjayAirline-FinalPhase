@@ -38,8 +38,11 @@ const Booking = () => {
   const handleSubmit = () => {
     const scheduleId = sessionStorage.getItem('scheduleId');
     const destinationScheduleId = sessionStorage.getItem('desinationScheduleId');
+
+    console.log(scheduleId)
+    console.log(scheduleId!=null && destinationScheduleId !=null)
     // Check if both scheduleId and destinationScheduleId are present
-    if (scheduleId && destinationScheduleId) {
+    if (scheduleId!='null' && destinationScheduleId !='null') {
       // Connecting flights logic
       const scheduleIdPassengers = [];
       const destinationScheduleIdPassengers = [];
@@ -66,7 +69,7 @@ const Booking = () => {
       // Single flight logic
       const flightTickets = passengers.map((passenger) => ({
         bookingId: '',
-        scheduleId,
+        scheduleId:destinationScheduleId,
         name: passenger.name,
         age: passenger.age,
         gender: passenger.gender,

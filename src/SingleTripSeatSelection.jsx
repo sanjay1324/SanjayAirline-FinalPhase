@@ -1,24 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { CircularProgress, Container, Grid, Button, Card, Typography, Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText, Box } from '@mui/material';
 import { Armchair } from 'phosphor-react';
-import axiosInstance from './AxiosInstance';
 import Cookies from 'js-cookie';
-import './index.css';
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import Navbar from './Navbar';
+import axiosInstance from './AxiosInstance';
+
 const SeatBooking = () => {
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [seatsData, setSeatsData] = useState([]);
   const [bookedSeats, setBookedSeats] = useState([]);
-  const [timer, setTimer] = useState(300); // 5 minutes in seconds
+  const [timer, setTimer] = useState(30); // 5 minutes in seconds
   const [timerInterval, setTimerInterval] = useState(null);
   const navigate = useNavigate();
   const ticketCount = sessionStorage.getItem('ticketCount');
   const [isModalOpen, setModalOpen] = useState(false);
   const [bookingDetails, setBookingDetails] = useState([]);
   const [loading, setLoading] = useState(false);
-
 
   useEffect(() => {
     const fetchSeatsData = async () => {
@@ -40,7 +39,6 @@ const SeatBooking = () => {
     // Fetch seats data after the component mounts
     fetchSeatsData();
 
-
   }, []);
 
   useEffect(() => {
@@ -48,20 +46,32 @@ const SeatBooking = () => {
       setTimer((prevTimer) => prevTimer - 1);
     }, 1000);
 
+    // Save the timer interval in state
+    setTimerInterval(timerInterval);
+
     return () => {
+      // Clear the timer interval when the component unmounts
       clearInterval(timerInterval);
+
+      // Clear the reset timer if it exists
+      if (timerInterval) {
+        clearTimeout(timerInterval);
+      }
     };
-  }, []);
+  }, [timer]);
 
   useEffect(() => {
     if (timer === 0) {
       // Perform any action when the timer reaches 0
       console.log('Timer reached 0');
+      ChangeSeatStatus(scheduleId, 'Available', seatNumbers);
+
       Cookies.remove(); // For clearing all cookies
-      navigate('/homepage')
+      navigate('/homepage');
       clearInterval(timerInterval);
     }
   }, [timer]);
+
   const isSeatBooked = (seatNumber) => {
     return bookedSeats.includes(seatNumber);
   };
@@ -72,7 +82,7 @@ const SeatBooking = () => {
       return;
     }
 
-    console.log(selectedSeats)
+    console.log(selectedSeats);
 
     let seatIsSelected;
 
@@ -100,6 +110,24 @@ const SeatBooking = () => {
     }
   };
 
+  const ChangeSeatStatus = async (scheduleId, status, seatNumbers) => {
+    try {
+      const response = await axiosInstance.put(
+        `Bookings/${scheduleId}/${status}`,
+        JSON.stringify(seatNumbers),
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      console.log(response);
+      return response.data;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  };
   const handleConfirm = async () => {
     try {
       if (selectedSeats.length === 0) {
@@ -145,10 +173,21 @@ const SeatBooking = () => {
 
       // Send a POST request with the combined data
 
+      // After confirming the booking, change the seat status to 'Booked'
+      const scheduleId = sessionStorage.getItem('desinationScheduleId');
+      const seatNumbers = selectedSeats;
+      console.log(selectedSeats)
+      console.log(seatNumbers)
+      await ChangeSeatStatus(scheduleId, 'Booked', seatNumbers);
 
-      // Perform actions based on the combined response if needed
+      // Set a timer to change the seat status back to 'Available' after 5 minutes
+      // const resetTimer = setTimeout(async () => {
+      //   await ChangeSeatStatus(scheduleId, 'Available', seatNumbers);
+      // }, 5 * 60 * 1000); // 5 minutes in milliseconds
 
-      // Set the confirmed state
+      // // Save the reset timer in state or context if you need to clear it later
+      // setTimerInterval(resetTimer);
+
     } catch (error) {
       console.error('Error during confirmation:', error);
       // Log the detailed error response
@@ -231,7 +270,7 @@ const SeatBooking = () => {
       };
 
       const combinedResponse = await axiosInstance.post('Bookings/CreateBooking', combinedData);
-      console.log(combinedResponse.status)
+      console.log(combinedResponse.status);
 
       if (combinedResponse.status === 200 || combinedResponse.status === 201) {
         console.log('Combined Response:', combinedResponse.data);
@@ -239,17 +278,13 @@ const SeatBooking = () => {
         // Show success toast after a delay
         setTimeout(() => {
           toast.success('Booking Done');
-
           navigate('/homepage');
-
         }, 3000); // Delay in milliseconds
-
 
       } else {
         // If the response status is not 200 or 201, handle accordingly
         console.error(combinedResponse.data);
       }
-
 
     } catch (error) {
       console.error('Error during confirmation:', error);
@@ -261,9 +296,6 @@ const SeatBooking = () => {
       setLoading(false);
     }
   };
-
-
-
 
   return (
     <>
@@ -279,9 +311,6 @@ const SeatBooking = () => {
               </Typography>
             </div>
             <Card sx={{ p: 3 }}>{renderSeats()}</Card>
-            {/* <Typography variant="div" className="mt-3">
-            <strong>Selected Seats:</strong> {selectedSeats.join(', ')}
-          </Typography> */}
             <Button variant="contained" color="primary" onClick={handleConfirm} className="mt-3" style={{ marginTop: 1230 }}>
               Confirm Booking
             </Button>
@@ -319,6 +348,7 @@ const SeatBooking = () => {
               variant="contained"
               color="primary"
               onClick={handleConfirmation}
+
               className="mt-3"
               style={{ marginTop: 1230 }}
             >
