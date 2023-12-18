@@ -61,10 +61,10 @@ const Navbar = () => {
           <Button color="inherit" onClick={() => navigate('/homepage')}>
             Search Flights
           </Button>
-          <Button color="inherit" onClick={() => navigate('/Past Bookings')}>
+          <Button color="inherit" onClick={() => navigate('/history')}>
             Past Booking
           </Button>
-          <Button color="inherit" onClick={() => navigate('/Recent Booking')}>
+          <Button color="inherit" onClick={() => navigate('/Cancel')}>
             Recent Booking
           </Button>
 

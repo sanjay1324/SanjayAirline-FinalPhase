@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Button, Container, Form } from 'react-bootstrap';
-import 'bootstrap/dist/css/bootstrap.min.css';
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
+import { Button, Box,TextField, Typography, Container, Link, Grid } from '@mui/material';
+import login from './assets/LoginPicture.gif';
 
 function Login() {
   const [username, setUsername] = useState('');
@@ -18,8 +18,18 @@ function Login() {
 
 
   const handleLogin = async () => {
+
+    if (!username ) {
+      toast.error('Username are required.');
+      return;
+    }
+    if (!password) {
+      toast.error('Password are required.');
+      return;
+    }
     try {
-      const response = await fetch('https://localhost:7285/api/LoginAndRegisterAuthentication/Login', {
+      const response = await fetch(`https://localhost:7285/api/LoginAndRegisterAuthentication/Login`,
+       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -38,7 +48,7 @@ function Login() {
           const token = decodeToken(data.token);
           sessionStorage.setItem('token', token);
           toast.success('Welcome Admin');
-          navigate('/Airports');
+          navigate('/Airport');
         }else if(role === 'User'){
           const token = decodeToken(data.token);
           sessionStorage.setItem('token', token);
@@ -57,55 +67,64 @@ function Login() {
   }
 }
 
-  return (
-    <Container className="mt-5">
-      {/* <ToastContainer/> */}
-      <Form
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleLogin();
-        }}
-      >
-        <Form.Group controlId="formBasicUsername">
-          <Form.Label>Username</Form.Label>
-          <Form.Control
-            type="text"
-            placeholder="Enter your username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-        </Form.Group>
-
-        <Form.Group controlId="formBasicPassword">
-          <Form.Label>Password</Form.Label>
-          <Form.Control
-            type="password"
-            placeholder="Enter your password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </Form.Group>
-
-        <Button variant="primary" type="submit">
-          Login
-        </Button>
-
-        <div className="mt-3">
-          <a href="/register" className="custom-link">
-            Don't Have An Account? Sign Up Here
-          </a>
-        </div>
-
-        <div className="mt-2">
-          <a href="/Password" className="custom-link1">
-            Forgot Password
-          </a>
-        </div>
-
-        <Form.Text className="text-danger">{message}</Form.Text>
-      </Form>
-    </Container>
-  );
-}
+return (
+  <Container component="main" maxWidth="xs">
+    <ToastContainer/>
+   <Box sx={{ display: 'flex', alignItems: 'center', marginRight: '16px' }}>
+          <img src={login} alt="SanjayAirline Logo" style={{ marginLeft:55,height: '250px', width: '250px' }} />
+        </Box>
+    <Typography component="h1" variant="h5">
+      Login
+    </Typography>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleLogin();
+      }}
+    >
+      <TextField
+        variant="outlined"
+        margin="normal"
+        fullWidth
+        id="username"
+        label="Username"
+        name="username"
+        autoComplete="username"
+        autoFocus
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+      />
+      <TextField
+        variant="outlined"
+        margin="normal"
+        fullWidth
+        name="password"
+        label="Password"
+        type="password"
+        id="password"
+        autoComplete="current-password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+      <Button type="submit" fullWidth variant="contained" color="primary">
+        Login
+      </Button>
+      <Grid container>
+        <Grid item xs>
+          <Link href="/password" variant="body2">
+            Forgot password?
+          </Link>
+        </Grid>
+        <Grid item>
+          <Link href="/register" variant="body2">
+            {"Don't have an account? Sign Up"}
+          </Link>
+        </Grid>
+      </Grid>
+      {message && <Typography variant="body2" color="error">{message}</Typography>}
+    </form>
+  </Container>
+);
+};
 
 export default Login;

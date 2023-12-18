@@ -18,6 +18,7 @@ import {
   FormControlLabel,
 } from '@material-ui/core';
 import { useNavigate } from 'react-router-dom';
+
 import Cookies from 'js-cookie';
 
 const Booking = () => {
@@ -30,6 +31,7 @@ const Booking = () => {
   const [selectedReturnScheduleId, setSelectedReturnScheduleId] = useState(null);
   const MAX_TICKETS = 5;
   const [isRoundTrip, setIsRoundTrip] = useState(false);
+  const [startDate, setStartDate] = useState(new Date());
 
 
 
@@ -91,6 +93,7 @@ const Booking = () => {
             gender: passenger.gender,
             seatNo: null,
           }));
+          
       const returnFlightTickets = returnPassengers.map((passenger) => ({
         bookingId: '',
         scheduleId: selectedReturnScheduleId,
@@ -193,7 +196,7 @@ const Booking = () => {
                     <TableCell>
                       <Button
                         variant="outlined"
-                        color="secondary"
+                        color="primary"
                         onClick={() => handleDeletePassenger(index)}
                       >
                         Delete

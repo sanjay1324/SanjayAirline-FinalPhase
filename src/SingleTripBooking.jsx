@@ -1,10 +1,22 @@
 import React, { useState } from 'react';
-import { Container, Row, Col, Card, Button } from 'react-bootstrap';
+import {
+  Container,
+  Card,
+  Button,
+  Typography,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+} from '@material-ui/core';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import Paper from '@mui/material/Paper';
-import Typography from '@mui/material/Typography';
 import Navbar from './Navbar'
+
+import 'bootstrap/dist/css/bootstrap.min.css';
+
 const Booking = () => {
   const navigate = useNavigate();
   const [bookingType, setBookingType] = useState('Single Trip');
@@ -12,6 +24,15 @@ const Booking = () => {
   const [ticketCount, setTicketCount] = useState(1); // Initialize with one ticket
   const MAX_TICKETS = 5;
 
+  const firstAirlineName = sessionStorage.getItem('firstFlightAirlineName');
+  const secondAirlineName = sessionStorage.getItem('secondFlightAirlineName');
+  const source = sessionStorage.getItem('sourceAirportId');
+  const destination = sessionStorage.getItem('destinationAiportId');
+  const flightName = sessionStorage.getItem('flightName');
+  const dateTime = sessionStorage.getItem('dateTime');
+
+
+  console.log(firstAirlineName,secondAirlineName)
 
 
   const handleAddPassenger = () => {
@@ -48,7 +69,6 @@ const Booking = () => {
       const destinationScheduleIdPassengers = [];
       passengers.forEach((passenger) => {
         const passengerDetails = {
-          bookingId: '',
           name: passenger.name,
           age: passenger.age,
           gender: passenger.gender,
@@ -56,8 +76,8 @@ const Booking = () => {
         };
 
         // Store passenger details separately for scheduleId and destinationScheduleId
-        scheduleIdPassengers.push({ ...passengerDetails, scheduleId });
-        destinationScheduleIdPassengers.push({ ...passengerDetails, scheduleId: destinationScheduleId });
+        scheduleIdPassengers.push({ ...passengerDetails, scheduleId});
+        destinationScheduleIdPassengers.push({ ...passengerDetails, airlineName:secondAirlineName,flightName:flightName,sourceAirportId:source,destinationAirportId:destination,dateTime:dateTime });
       });
 
       Cookies.set('scheduleIdPassengers', JSON.stringify(scheduleIdPassengers));
@@ -89,76 +109,82 @@ const Booking = () => {
 
   return (
     <>
-      <Navbar />
-      <Container className="mt-5">
-        <Row>
-          <Col>
-            <Card>
-              <Card.Body>
-                <Card.Title>Booking Form</Card.Title>
-                <Card.Text>No. of Tickets: {ticketCount}</Card.Text>
+    <Navbar/>
+      <Container className="mt-5" style={{width:"100%"}} >
+        <Card>
+          <Card>
+            <Typography variant="h5" component="div">
+              Passenger Details
+            </Typography>
+            <Typography variant="body1" component="div">
+              No. of Tickets: {ticketCount}
+            </Typography>
 
-                <Paper elevation={3} style={{ padding: '20px' }}>
-                  <Typography variant="h6">Passenger Details</Typography>
+            <Card elevation={3} style={{ padding: '20px' }}>
+              <Typography variant="h6">Passenger Details</Typography>
 
-                  {passengers.map((passenger, index) => (
-                    <div key={index} style={{ marginBottom: '20px' }}>
-                      <Typography variant="subtitle1">Passenger {index + 1}</Typography>
-                      <div style={{ display: 'flex', marginBottom: '10px' }}>
-                        <div style={{ marginRight: '10px', flexGrow: 1 }}>
-                          <Typography>Name:</Typography>
-                          <input
-                            type="text"
-                            value={passenger.name}
-                            onChange={(e) => handlePassengerChange(index, 'name', e.target.value)}
-                            style={{ width: '100%' }}
-                          />
-                        </div>
-                        <div style={{ marginRight: '10px', flexGrow: 1 }}>
-                          <Typography>Age:</Typography>
-                          <input
-                            type="text"
-                            value={passenger.age}
-                            onChange={(e) => handlePassengerChange(index, 'age', e.target.value)}
-                            style={{ width: '100%' }}
-                          />
-                        </div>
-                        <div style={{ marginRight: '10px', flexGrow: 1 }}>
-                          <Typography>Gender:</Typography>
-                          <select
-                            value={passenger.gender}
-                            onChange={(e) => handlePassengerChange(index, 'gender', e.target.value)}
-                            style={{ width: '100%' }}
-                          >
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="Other">Other</option>
-                          </select>
-                        </div>
-                        <Button
-                          variant="danger"
-                          style={{ height: '40px', width: '150px', marginTop: '15px', marginLeft: '10px' }}
-                          onClick={() => handleDeletePassenger(index)}
-                        >
-                          Delete Passenger
-                        </Button>
-                      </div>
-
+              {passengers.map((passenger, index) => (
+                <div key={index} style={{ marginBottom: '20px' }}>
+                  <Typography variant="subtitle1">Passenger {index + 1}</Typography>
+                  <div style={{ display: 'flex', marginBottom: '10px' }}>
+                    <div style={{ marginRight: '10px', flexGrow: 1 }}>
+                      <Typography>Name:</Typography>
+                      <TextField
+                        type="text"
+                        value={passenger.name}
+                        onChange={(e) => handlePassengerChange(index, 'name', e.target.value)}
+                        fullWidth
+                      />
                     </div>
-                  ))}
+                    <div style={{ marginRight: '10px', flexGrow: 1 }}>
+                      <Typography>Age:</Typography>
+                      <TextField
+                        type="text"
+                        value={passenger.age}
+                        onChange={(e) => handlePassengerChange(index, 'age', e.target.value)}
+                        fullWidth
+                      />
+                    </div>
+                    <div style={{ marginRight: '10px', flexGrow: 1 }}>
+                      <Typography>Gender:</Typography>
+                      <FormControl fullWidth>
+                        <Select
+                          value={passenger.gender}
+                          onChange={(e) => handlePassengerChange(index, 'gender', e.target.value)}
+                        >
+                          <MenuItem value="Male">Male</MenuItem>
+                          <MenuItem value="Female">Female</MenuItem>
+                          <MenuItem value="Other">Other</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </div>
+                    <Button
+  variant="contained" color="primary" 
+  style={{
+    height: '50px',
+    width: '150px',
+    marginTop: '15px',
+    marginLeft: '10px',
+  }}
+  onClick={() => handleDeletePassenger(index)}
+>
+  Delete Passenger
+</Button>
 
-                  <Button variant="primary" onClick={handleAddPassenger}>
-                    Add Passenger
-                  </Button>
+                  </div>
+                </div>
+              ))}
 
-                  <Button variant="success" onClick={handleSubmit}>
-                    Continue to Seat Booking
-                  </Button>
-                </Paper>
-              </Card.Body>
+              <Button variant="contained" color="primary" onClick={handleAddPassenger} style={{margin:10}}>
+                Add Passenger
+              </Button>
+
+              <Button variant="contained" color="primary" onClick={handleSubmit}>
+                Continue to Seat Booking
+              </Button>
             </Card>
-          </Col>
-        </Row>
+          </Card>
+        </Card>
       </Container>
     </>
   );

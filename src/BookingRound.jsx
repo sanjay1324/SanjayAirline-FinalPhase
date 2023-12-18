@@ -9,20 +9,29 @@ import {
   TableRow,
   Paper,
   CircularProgress,
+  Typography,
 } from '@material-ui/core';
 import axios from 'axios';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 import { useNavigate } from 'react-router-dom';
+import { parseISO, format,isValid } from 'date-fns';
 
 const Booking = () => {
   const [selectedDate, setSelectedDate] = useState('');
+  const [flightName,setFlightName] = useState('')
   const [interChangeSource, setInterChangeSource] = useState('');
   const [interChangeDestination, setInterChangeDestination] = useState('');
+  const [flightDuration,setFlightDuration]=useState('');
+  const [date,setDate]=useState('');
   const navigate = useNavigate();
-
   const [flights, setFlights] = useState([]);
   const [loading, setLoading] = useState(false);
-const [book,setBook] = useState();
+const [book,setBook] = useState('');
+const scheduleId = sessionStorage.getItem('desinationScheduleId');
+
 useEffect(() => {
+
   async function fetchData() {
     await fetchFlightsSchedules();
   }
@@ -33,7 +42,6 @@ useEffect(() => {
     try {
       setLoading(true);
 
-      const scheduleId = sessionStorage.getItem('desinationScheduleId');
 
       const response = await axios.get(`https://localhost:7285/api/FlightSchedules/${scheduleId}`);
 
@@ -42,12 +50,14 @@ useEffect(() => {
 
       console.log(response.data);
       // setScheduleId(response.data.scheduleId);
-      // setFlightName(response.data.flightName);
-
+      setFlightName(response.data.flightName);
       setInterChangeSource(response.data.destinationAirportId);
       setInterChangeDestination(response.data.sourceAirportId);
+      setDate(response.data.dateTime);
+      setFlightDuration(response.data.flightDuration)
 
       setBook(response.data);
+      console.log(book)
       
     } catch (error) {
       console.error('Error fetching flights schedule:', error);
@@ -70,8 +80,26 @@ useEffect(() => {
         return;
       }
 
+      console.log('Before parsing:', selectedDate);
+
+      console.log('Before parsing:', selectedDate);
+
+    // Assuming selectedDate is a date string
+    const isoFormattedDate = format(new Date(selectedDate), 'yyyy-MM-dd');
+    const parsedDate = parseISO(isoFormattedDate);
+
+    console.log('After parsing:', parsedDate);
+
+    // Check if the parsed date is valid
+    if (!isValid(parsedDate)) {
+      throw new Error('Invalid date format');
+    }
+
+    const formattedDate = format(parsedDate, 'yyyy-MM-dd');
+
+
       const response = await axios.get(
-        `https://localhost:7285/api/HomePage?source=${sourceAirportId}&destination=${destinationAirportId}&travelDate=${selectedDate}`
+        `https://localhost:7285/api/HomePage?source=${sourceAirportId}&destination=${destinationAirportId}&travelDate=${formattedDate}`
       );
 
       console.log(response.data);
@@ -111,10 +139,13 @@ useEffect(() => {
   };
 
   const handleScheduleSelect = async () => {
-
-    await fetchFlightsSchedule();
+    try {
+      await fetchFlightsSchedule();
+    } catch (error) {
+      console.error('Error handling schedule selection:', error.message);
+      // Handle the error
+    }
   };
-
   const handleSelectFlight = (scheduleId) => {
     sessionStorage.setItem('returnScheduleId', scheduleId);
     navigate('/round-trip-booking')
@@ -135,34 +166,30 @@ useEffect(() => {
               </div>
             ) : (
               <TableContainer component={Paper} className="mt-3">
+          <Card.Title>Select Round Trip Flights</Card.Title>
                 <Table>
                   <TableHead>
                     <TableRow>
                       <TableCell>Flight Name</TableCell>
                       <TableCell>Source </TableCell>
-                      <TableCell>Desination</TableCell>
+                      <TableCell>Destination</TableCell>
+                      <TableCell>Date</TableCell>
+                      <TableCell>Time</TableCell>
                       <TableCell>Flight Duration</TableCell>
-                      <TableCell>Action</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                  {book && book.length > 0 ? (
-  book.map((books) => (
-    <TableRow key={books.scheduleId}>
-      <TableCell>{books.flightName}</TableCell>
-      <TableCell>{books.sourceAirportId}</TableCell>
-      <TableCell>{books.destinationAirportId}</TableCell>
-      <TableCell>{new Date(books.dateTime).toLocaleDateString()}</TableCell>
-      <TableCell>{new Date(books.dateTime).toLocaleTimeString()}</TableCell>
-      <TableCell>{convertDuration(books.flightDuration)}</TableCell>
+    <TableRow >
+      <TableCell>{flightName}</TableCell>
+      <TableCell>{interChangeDestination}</TableCell>
+      <TableCell>{interChangeSource}</TableCell>
+      <TableCell>{new Date(date).toLocaleDateString()}</TableCell>
+      <TableCell>{new Date(date).toLocaleTimeString()}</TableCell>
+      <TableCell>{convertDuration(flightDuration)}</TableCell>
      
     </TableRow>
-  ))
-) : (
-  <TableRow>
-    <TableCell colSpan={6}>No data available</TableCell>
-  </TableRow>
-)}
+
+  
 
                   </TableBody>
                 </Table>
@@ -171,11 +198,11 @@ useEffect(() => {
         <Card.Body>
           <Card.Title>Select Round Trip Flights</Card.Title>
           <Form>
-            <Form.Group className="mb-3">
-              <Form.Label>Select Return Date</Form.Label>
-              <Form.Control type="date" value={selectedDate} onChange={handleDateChange} />
-            </Form.Group>
-
+          <Form.Group className="mb-3">
+          <Form.Label>Select Return Date</Form.Label>
+          {/* Replace the input field with DatePicker */}
+          <DatePicker selected={selectedDate} onChange={(date) => setSelectedDate(date)} />
+        </Form.Group>
             <Button variant="primary" onClick={handleScheduleSelect}>
               Select Schedule
             </Button>
@@ -229,5 +256,4 @@ useEffect(() => {
     </Container>
   );
 };
-
 export default Booking;

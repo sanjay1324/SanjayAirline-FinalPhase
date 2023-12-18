@@ -81,6 +81,15 @@ export default function SignUp() {
       return;
     }
 
+    if(!username){
+      alert('Passwords do not match');
+      return;
+    }
+    if(!email){
+      alert('Passwords do not match');
+      return;
+    }
+
     // Define the user registration data based on your JSON structure
     const userData = {
       name: `${firstName} ${lastName}`,

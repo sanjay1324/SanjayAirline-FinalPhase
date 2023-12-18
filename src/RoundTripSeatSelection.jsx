@@ -31,7 +31,7 @@ const SeatBooking = () => {
     };
 
     console.log(selectedOngoingSeats)
-     console.log(selectedReturnSeats)
+    console.log(selectedReturnSeats)
 
     // Fetch ongoing seats data after the component mounts
     const ongoingScheduleId = sessionStorage.getItem('desinationScheduleId');
@@ -97,7 +97,7 @@ const SeatBooking = () => {
     editedSeatsSetter(editedSeatsCopy);
   };
 
-    const handleSeatClick = (seatNumber, isReturnJourney) => {
+  const handleSeatClick = (seatNumber, isReturnJourney) => {
     const selectedSeatsSetter = isReturnJourney
       ? setSelectedReturnSeats
       : setSelectedOngoingSeats;
@@ -117,127 +117,87 @@ const SeatBooking = () => {
     }
   };
 
-  const handleConfirm = async () => {
+  const handleConfirm = async (status) => {
     try {
       const isReturnJourney = !!sessionStorage.getItem('desinationScheduleId');
-  
-      const selectedSeats = isReturnJourney ? selectedReturnSeats : selectedOngoingSeats;
-      console.log(selectedSeats)
-      const selectedSeatss = isReturnJourney ?   selectedOngoingSeats:selectedReturnSeats;
-      console.log(selectedSeatss)
 
-      const existingFlightTicketss = JSON.parse(
-        Cookies.get('singleJourneyTickets') || '[]'
-      );
+      if (status === 'singleJourneyTickets') {
+        const selectedSeatss = isReturnJourney ? selectedOngoingSeats : selectedReturnSeats; //going
+        console.log(selectedSeatss)
 
-      console.log(existingFlightTicketss)
-      
-      const existingFlightTickets = JSON.parse(
-        Cookies.get(isReturnJourney ? 'returnJourneyTickets' : 'singleJourneyTickets') || '[]'
-      );
-      
-      console.log(existingFlightTickets)
-      console.log('Existing Flight Tickets:', existingFlightTicketss);
+        const existingFlightTicketss = JSON.parse(
+          Cookies.get('singleJourneyTickets') || '[]'
+        ); //going
 
-      
-      // Find the first available seat number for each selected seat
-      for (let i = 0; i < selectedSeats.length; i++) {
-        const seat = selectedSeats[i];
-      
-        // Check if the seat is already assigned
-        if (!existingFlightTickets.some((ticket) => ticket.seatNo === seat)) {
-          // Find the first passenger with a null seat number
-          const passengerIndex = existingFlightTickets.findIndex(
-            (passenger) => passenger.seatNo === null
-          );
-      
-          if (passengerIndex !== -1) {
-            // Assign the seat to the passenger
-            existingFlightTickets[passengerIndex].seatNo = seat;
-          } else {
-            console.log('No passenger information found for seat assignment!');
-            // Handle the case where no more passengers are available
+        console.log('Existing Flight Tickets:', existingFlightTicketss);
+
+        for (let i = 0; i < selectedSeatss.length; i++) {
+          const seat = selectedSeatss[i];
+
+          // Check if the seat is already assigned
+          if (!existingFlightTicketss.some((ticket) => ticket.seatNo === seat)) {
+            // Find the first passenger with a null seat number
+            const passengerIndex = existingFlightTicketss.findIndex(
+              (passenger) => passenger.seatNo === null
+            );
+
+            if (passengerIndex !== -1) {
+              // Assign the seat to the passenger
+              existingFlightTicketss[passengerIndex].seatNo = seat;
+            } else {
+              console.error('No passenger information found for seat assignment!');
+              // Handle the case where no more passengers are available
+            }
           }
         }
-      }
-      
-      // Update existingFlightTicketss
-      for (let i = 0; i < selectedSeatss.length; i++) {
-        const seat = selectedSeatss[i];
-      
-        // Check if the seat is already assigned
-        if (!existingFlightTicketss.some((ticket) => ticket.seatNo === seat)) {
-          // Find the first passenger with a null seat number
-          const passengerIndex = existingFlightTicketss.findIndex(
-            (passenger) => passenger.seatNo === null
-          );
-      
-          if (passengerIndex !== -1) {
-            // Assign the seat to the passenger
-            existingFlightTicketss[passengerIndex].seatNo = seat;
-          } else {
-            console.error('No passenger information found for seat assignment!');
-            // Handle the case where no more passengers are available
-          }
-        }
-      }
-      
-      // Update cookies
-      Cookies.set(
-        isReturnJourney ? 'returnJourneyTickets' : 'singleJourneyTickets',
-        JSON.stringify(existingFlightTickets)
-      );
-      
-      Cookies.set(
-        isReturnJourney ? 'singleJourneyTickets' : 'returnJourneyTickets',
-        JSON.stringify(existingFlightTicketss)
-      );
-      console.log('FlightTicket details before submitting:', existingFlightTickets);
-      toast.success('Booking successfully');
-      Cookies.set(
-        isReturnJourney ? 'returnJourneyTickets' : 'singleJourneyTickets',
-        JSON.stringify(existingFlightTickets)
-      ); // Correctly stringify the array
-  
-      if (isReturnJourney) {
-        // If it's the return journey, proceed to the next step
-        // Handle seat booking details for the return journey if needed
-        // ...
-  
-        // Clear the singleJourneyTickets cookies after processing
-        setSelectedOngoingSeats([]); // Clear ongoing selected seats
+
+        Cookies.set(
+          isReturnJourney ? 'singleJourneyTickets' : 'returnJourneyTickets',
+          JSON.stringify(existingFlightTicketss)
+        );
+
       } else {
-        // If it's the single journey, no need to send the combined data yet
-        return;
-      }
-  
-      // At this point, both singleJourneyTickets and returnJourneyTickets should be available
-      // Combine both cookies and send a POST request with the combined data
-      const combinedData = {
-        booking: {
-          bookingType: 'RoundTrip', // Assuming you want to set this explicitly for round trips
-          userId: sessionStorage.getItem('userId'),
-          status: 'Booked',
-        },
-        flightTickets: [
-          ...JSON.parse(Cookies.get('singleJourneyTickets') || '[]'),
-          ...JSON.parse(Cookies.get('returnJourneyTickets') || '[]'),
-        ].filter((passenger) => passenger.seatNo !== null),
-      };
+        const selectedSeats = isReturnJourney ? selectedReturnSeats : selectedOngoingSeats; //return
+        console.log(selectedSeats)
 
-  
-      // Assuming that axiosInstance.post is asynchronous
-      const combinedResponse = await axiosInstance.post('Bookings/CreateBooking', combinedData);
-  
-      console.log('Combined Response:', combinedResponse.data);
-  
-      // Perform actions based on the combined response if needed
-      console.log('Booking, FlightTicket, and FlightSeat created successfully');
-  
-      Cookies.remove('singleJourneyTickets');
-      Cookies.remove('returnJourneyTickets');
-      // Set the confirmed state
-      setConfirmed(true);
+        const existingFlightTickets = JSON.parse(
+          Cookies.get(isReturnJourney ? 'returnJourneyTickets' : 'singleJourneyTickets') || '[]'
+        );
+
+
+        console.log(existingFlightTickets)
+
+
+        // Find the first available seat number for each selected seat
+        for (let i = 0; i < selectedSeats.length; i++) {
+          const seat = selectedSeats[i];
+
+          // Check if the seat is already assigned
+          if (!existingFlightTickets.some((ticket) => ticket.seatNo === seat)) {
+            // Find the first passenger with a null seat number
+            const passengerIndex = existingFlightTickets.findIndex(
+              (passenger) => passenger.seatNo === null
+            );
+
+            if (passengerIndex !== -1) {
+              // Assign the seat to the passenger
+              existingFlightTickets[passengerIndex].seatNo = seat;
+            } else {
+              console.log('No passenger information found for seat assignment!');
+              // Handle the case where no more passengers are available
+            }
+          }
+        }
+
+        Cookies.set(
+          isReturnJourney ? 'returnJourneyTickets' : 'singleJourneyTickets',
+          JSON.stringify(existingFlightTickets)
+        );
+      }
+
+
+     
+
     } catch (error) {
       console.error('Error during confirmation:', error);
       // Log the detailed error response
@@ -247,7 +207,53 @@ const SeatBooking = () => {
       // Handle the error as needed
     }
   };
-  
+
+  const handleFinalConfirm = async () => {
+    const combinedData = {
+      booking: {
+        bookingType: 'RoundTrip', // Assuming you want to set this explicitly for round trips
+        userId: sessionStorage.getItem('userId'),
+        status: 'Booked',
+      },
+      flightTickets: [
+        ...JSON.parse(Cookies.get('singleJourneyTickets') || '[]'),
+        ...JSON.parse(Cookies.get('returnJourneyTickets') || '[]'),
+      ].filter((passenger) => passenger.seatNo !== null),
+
+
+    }
+
+    const combinedResponse = await axiosInstance.post('Bookings/CreateBooking', combinedData);
+
+    console.log('Combined Response:', combinedResponse.data);
+
+    // Perform actions based on the combined response if needed
+    console.log('Booking, FlightTicket, and FlightSeat created successfully');
+
+    console.log()
+    sessionStorage.setItem('bookingId',combinedResponse.data.bookingId)
+
+    setConfirmed(true);
+
+  }
+  const ChangeSeatStatus = async (scheduleId, status, seatNumbers) => {
+    try {
+      const response = await axiosInstance.put(
+        `Bookings/${scheduleId}/${status}`,
+        JSON.stringify(seatNumbers),
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      console.log(response);
+      return response.data;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  };
 
   const renderSeats = (seatsData, selectedSeats, handleSeatClick, isEditing, isReturnJourney) => {
     const seatButtons = [];
@@ -261,8 +267,8 @@ const SeatBooking = () => {
             selectedSeats.includes(seat.seatNumber)
               ? 'failed'
               : seat.status === 'Booked'
-              ? 'secondary'
-              : 'light'
+                ? 'secondary'
+                : 'light'
           }
           onClick={() => {
             if (seat.status !== 'Booked') {
@@ -280,8 +286,8 @@ const SeatBooking = () => {
               selectedSeats.includes(seat.seatNumber)
                 ? '#007BFF'
                 : seat.status === 'Booked'
-                ? '#6C757D'
-                : '#6C757D'
+                  ? '#6C757D'
+                  : '#6C757D'
             }
             size={24}
             className={seat.status === 'Booked' ? 'disabled-armchair' : ''}
@@ -295,41 +301,50 @@ const SeatBooking = () => {
   };
 
   return (
+    <>
+
+
     <Container className="mt-5">
-      <Navbar/>
+      <Navbar />
       <Grid container>
         <Grid item xs={12}>
           <Typography variant="h2">Select Your Seats - Ongoing</Typography>
-            <>
-              <Card sx={{ p: 3 }}>
-                {renderSeats(ongoingSeatsData, isEditing ? editedOngoingSeats : selectedOngoingSeats, handleSeatClick, isEditing, false)}
-              </Card>
-              
-              
-            </>
-            <Paper sx={{ p: 3 }}>
-              <Typography variant="div" className="mt-3">
-                <strong>Selected Seats:</strong> {selectedOngoingSeats.join(', ')}
-              </Typography>
-            
-            </Paper>
+          <>
+            <Card sx={{ p: 3 }}>
+              {renderSeats(ongoingSeatsData, isEditing ? editedOngoingSeats : selectedOngoingSeats, handleSeatClick, isEditing, false)}
+            </Card>
+
+          </>
+          <Paper sx={{ p: 3 }}>
+            <Typography variant="div" className="mt-3">
+              <strong>Selected Seats:</strong> {selectedOngoingSeats.join(', ')}
+            </Typography>
+            <Button onClick={() => handleConfirm('singleJourneyTickets')}>Select Seats</Button>
+
+          </Paper>
         </Grid>
-        { returnSeatsData.length > 0 && (
+        {returnSeatsData.length > 0 && (
           <Grid item xs={12} className="mt-5">
             <Typography variant="h2">Select Your Seats - Return</Typography>
             <Card sx={{ p: 3 }}>{renderSeats(returnSeatsData, selectedReturnSeats, handleSeatClick, false, true)}</Card>
             <Typography variant="div" className="mt-3">
               <strong>Selected Seats:</strong> {selectedReturnSeats.join(', ')}
             </Typography>
+            <Button onClick={() => handleConfirm('returnJourneyTickets')}>Select Seats</Button>
+
           </Grid>
         )}
-        
+
       </Grid>
-      <Button onClick={handleConfirm}>Confirm</Button>
+
+
 
     </Container>
+
+    <Button onClick={handleFinalConfirm}> Confirm </Button>
+    </>
   );
-  
-  
+
+
 };
 export default SeatBooking;

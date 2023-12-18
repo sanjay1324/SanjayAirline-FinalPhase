@@ -11,14 +11,15 @@ const SeatBooking = () => {
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [seatsData, setSeatsData] = useState([]);
   const [bookedSeats, setBookedSeats] = useState([]);
-  const [timer, setTimer] = useState(30); // 5 minutes in seconds
+  const [timer, setTimer] = useState(300); // 5 minutes in seconds
   const [timerInterval, setTimerInterval] = useState(null);
   const navigate = useNavigate();
   const ticketCount = sessionStorage.getItem('ticketCount');
   const [isModalOpen, setModalOpen] = useState(false);
   const [bookingDetails, setBookingDetails] = useState([]);
   const [loading, setLoading] = useState(false);
-
+  const scheduleId = sessionStorage.getItem('desinationScheduleId');
+  const seatNumbers = selectedSeats;
   useEffect(() => {
     const fetchSeatsData = async () => {
       try {
@@ -81,6 +82,8 @@ const SeatBooking = () => {
       console.log(`Seat ${seatNumber} is already booked.`);
       return;
     }
+
+     ChangeSeatStatus(scheduleId, 'Booked', seatNumbers);
 
     console.log(selectedSeats);
 
@@ -173,20 +176,18 @@ const SeatBooking = () => {
 
       // Send a POST request with the combined data
 
-      // After confirming the booking, change the seat status to 'Booked'
-      const scheduleId = sessionStorage.getItem('desinationScheduleId');
-      const seatNumbers = selectedSeats;
+    
       console.log(selectedSeats)
       console.log(seatNumbers)
-      await ChangeSeatStatus(scheduleId, 'Booked', seatNumbers);
 
       // Set a timer to change the seat status back to 'Available' after 5 minutes
-      // const resetTimer = setTimeout(async () => {
-      //   await ChangeSeatStatus(scheduleId, 'Available', seatNumbers);
-      // }, 5 * 60 * 1000); // 5 minutes in milliseconds
+      const resetTimer = setTimeout(async () => {
+        await ChangeSeatStatus(scheduleId, 'Available', seatNumbers);
+      }, 5 * 60 * 1000); // 5 minutes in milliseconds
 
-      // // Save the reset timer in state or context if you need to clear it later
-      // setTimerInterval(resetTimer);
+      // Save the reset timer in state or context if you need to clear it later
+      setTimerInterval(resetTimer);
+
 
     } catch (error) {
       console.error('Error during confirmation:', error);
@@ -274,11 +275,12 @@ const SeatBooking = () => {
 
       if (combinedResponse.status === 200 || combinedResponse.status === 201) {
         console.log('Combined Response:', combinedResponse.data);
+        toast.success('Booking Done');
 
+        sessionStorage.setItem('bookingId',combinedResponse.data.bookingId)
         // Show success toast after a delay
         setTimeout(() => {
-          toast.success('Booking Done');
-          navigate('/homepage');
+          navigate('/ticket');
         }, 3000); // Delay in milliseconds
 
       } else {
@@ -335,7 +337,6 @@ const SeatBooking = () => {
               <Box key={index} mb={2}>
                 <DialogContentText>
                   <strong>Seat {passenger.seatNo}:</strong> Passenger Name: {passenger.name}, Age: {passenger.age}
-                  {/* Add more details as needed */}
                 </DialogContentText>
               </Box>
             ))}
