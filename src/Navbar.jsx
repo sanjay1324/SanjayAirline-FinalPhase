@@ -17,19 +17,20 @@ const Navbar = () => {
   const handleLogout = () => {
     // Implement your logout logic here
     // For example, navigate to the login page
+    
     navigate('/');
   };
 
   const handleHistory = () => {
     // Implement your history logic here
     // For example, navigate to the history page
-    navigate('/FlightDetails');
+    navigate('/flight-details');
   };
 
   const handleAboutUs = () => {
     // Implement your about us logic here
     // For example, navigate to the about us page
-    navigate('/FlightSchedule');
+    navigate('/flight-schedule');
   };
 
   const handleAdminActions = () => {

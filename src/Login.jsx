@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import { Button, Box,TextField, Typography, Container, Link, Grid } from '@mui/material';
 import login from './assets/LoginPicture.gif';
-
+import img from "./assets/B.jpg"
 function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -39,11 +39,11 @@ function Login() {
 
       if (response.ok) {
         const data = await response.json();
-        console.log(data)
         sessionStorage.setItem('userId', data.userId);
         sessionStorage.setItem('username', username);
         sessionStorage.setItem('role', data.role);
         const role = sessionStorage.getItem('role');
+        sessionStorage.setItem("LoggedIn",true)
         if ( role == 'Admin') {
           const token = decodeToken(data.token);
           sessionStorage.setItem('token', token);
@@ -67,7 +67,11 @@ function Login() {
   }
 }
 
+
 return (
+
+
+  <div>
   <Container component="main" maxWidth="xs">
     <ToastContainer/>
    <Box sx={{ display: 'flex', alignItems: 'center', marginRight: '16px' }}>
@@ -124,6 +128,7 @@ return (
       {message && <Typography variant="body2" color="error">{message}</Typography>}
     </form>
   </Container>
+  </div>
 );
 };
 

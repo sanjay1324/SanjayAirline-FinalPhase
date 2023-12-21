@@ -28,6 +28,16 @@ const CancelBookingPage = () => {
       setUserId(storedUserId);
     }
 
+    const fetchBookingDetails = async () =>{
+      try{
+        const response = await axios.get(`https://localhost:7285/api/Bookings/booking/${bookingId}`);
+        const bookingData = response.data;
+        console.log(response.data)
+
+      }catch{
+
+      }
+    }
     // Fetch the user's bookings when the component mounts
     const fetchBookings = async () => {
       try {
@@ -44,6 +54,8 @@ const CancelBookingPage = () => {
     fetchBookings();
   }, [userId]);
 
+  
+
 
 
   const handleViewDetails = (bookingId) => {
@@ -54,6 +66,8 @@ const CancelBookingPage = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
   };
+
+  
 
   return (
     <div style={{marginTop:50}}>

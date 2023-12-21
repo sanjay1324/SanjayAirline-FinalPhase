@@ -16,9 +16,9 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { useNavigate } from 'react-router-dom';
 import { parseISO, format,isValid } from 'date-fns';
-
+import Navbar from './Navbar'
 const Booking = () => {
-  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [flightName,setFlightName] = useState('')
   const [interChangeSource, setInterChangeSource] = useState('');
   const [interChangeDestination, setInterChangeDestination] = useState('');
@@ -29,6 +29,7 @@ const Booking = () => {
   const [loading, setLoading] = useState(false);
 const [book,setBook] = useState('');
 const scheduleId = sessionStorage.getItem('desinationScheduleId');
+const currentDate = new Date();
 
 useEffect(() => {
 
@@ -199,10 +200,14 @@ useEffect(() => {
           <Card.Title>Select Round Trip Flights</Card.Title>
           <Form>
           <Form.Group className="mb-3">
-          <Form.Label>Select Return Date</Form.Label>
-          {/* Replace the input field with DatePicker */}
-          <DatePicker selected={selectedDate} onChange={(date) => setSelectedDate(date)} />
-        </Form.Group>
+      <Form.Label>Select Return Date</Form.Label>
+      <DatePicker
+        selected={selectedDate}
+        onChange={(date) => setSelectedDate(date)}
+        minDate={currentDate} // Set the minimum date to the current date
+        dateFormat="yyyy-MM-dd"
+      />
+    </Form.Group>
             <Button variant="primary" onClick={handleScheduleSelect}>
               Select Schedule
             </Button>

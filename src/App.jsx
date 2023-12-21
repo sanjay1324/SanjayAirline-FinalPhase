@@ -15,7 +15,6 @@ import ConnectingFlightSeaSelection from './ConnectingFlightSeaSelection'
 import History from './UserHistory'
 import RoundTripSeatSelection from './RoundTripSeatSelection'
 import RoundTripReturnFlight from './BookingRound';
-import TableCell2 from './assets/TriedNewThings/TableCell2'
 import CancelBookingPage from './CancellationPage';
 import GenerateTicket from './GenerateTicket'
 function App() {
@@ -39,7 +38,6 @@ function App() {
         <Route path='/flight-details' element={<FlightDetails/>}/>
         <Route path='/flight-schedule' element={<FlightSchedule/>}/>
         <Route path='/history' element={<History/>}/>
-        <Route path='/ssss' element={<TableCell2/>}/>
         <Route path='/Cancel' element={<CancelBookingPage/>}/>
         <Route path='/ticket' element={<GenerateTicket/>}/>
         </Routes>

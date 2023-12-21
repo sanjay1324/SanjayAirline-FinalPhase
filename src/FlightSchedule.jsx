@@ -194,7 +194,7 @@ const FlightSchedule = () => {
                             >
                                 {airportDetails.map((airport) => (
                                     <MenuItem key={airport.airportId} value={airport.airportId}>
-                                        {airport.airportId}
+                                        {airport.city}
                                     </MenuItem>
                                 ))}
                             </Select>
@@ -210,7 +210,7 @@ const FlightSchedule = () => {
                             >
                                 {airportDetails.map((airport) => (
                                     <MenuItem key={airport.airportId} value={airport.airportId}>
-                                        {airport.airportId}
+                                        {airport.city}
                                     </MenuItem>
                                 ))}
                             </Select>

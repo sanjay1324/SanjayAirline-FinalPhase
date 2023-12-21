@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import Navbar from './Navbar';
 import axiosInstance from './AxiosInstance';
+import './den.css'
 
 const SeatBooking = () => {
   const [selectedSeats, setSelectedSeats] = useState([]);
@@ -20,6 +21,7 @@ const SeatBooking = () => {
   const [loading, setLoading] = useState(false);
   const scheduleId = sessionStorage.getItem('desinationScheduleId');
   const seatNumbers = selectedSeats;
+
   useEffect(() => {
     const fetchSeatsData = async () => {
       try {
@@ -113,6 +115,9 @@ const SeatBooking = () => {
     }
   };
 
+  
+
+
   const ChangeSeatStatus = async (scheduleId, status, seatNumbers) => {
     try {
       const response = await axiosInstance.put(
@@ -198,57 +203,14 @@ const SeatBooking = () => {
       // Handle the error as needed
     }
   };
+ 
 
-  const renderSeats = () => {
-    const seatButtons = [];
-    const seatsPerRow = 6;
 
-    for (let i = 0; i < seatsData.length; i += seatsPerRow) {
-      const rowSeats = seatsData.slice(i, i + seatsPerRow);
-      rowSeats.forEach((seat) => {
-        seatButtons.push(
-          <React.Fragment key={seat.seatNumber}>
-            <Button
-              variant={
-                selectedSeats.includes(seat.seatNumber)
-                  ? 'success'
-                  : seat.status === 'Booked'
-                    ? 'secondary'
-                    : 'light'
-              }
-              onClick={() => {
-                if (seat.status !== 'Booked') {
-                  handleSeatClick(seat.seatNumber);
-                }
-              }}
-              className={`m-2 ${seat.status === 'Booked' ? 'disabled-seat' : ''}`}
-              disabled={seat.status === 'Booked'}
-            >
-              <Armchair
-                weight={selectedSeats.includes(seat.seatNumber) ? 'bold' : 'regular'}
-                color={
-                  selectedSeats.includes(seat.seatNumber)
-                    ? '#007BFF'
-                    : seat.status === 'Booked'
-                      ? '#6C757D'
-                      : '#6C757D'
-                }
-                size={24}
-                className={seat.status === 'Booked' ? 'disabled-armchair' : ''}
-              />
-              <span className="sr-only">{` ${seat.seatNumber}`}</span>
-            </Button>
-          </React.Fragment>
-        );
-      });
-
-      // Add space between rows
-      seatButtons.push(<div key={`space-${i}`} style={{ marginBottom: '10px' }} />);
-    }
-
-    return seatButtons;
-  };
-
+  
+  
+  
+  
+  
   const handleCloseModal = () => {
     // Close the modal
     setModalOpen(false);
@@ -299,6 +261,55 @@ const SeatBooking = () => {
     }
   };
 
+  const renderSeats = () => {
+    const seatButtons = [];
+    const seatsPerRow = 3;
+
+    for (let i = 0; i < seatsData.length; i += seatsPerRow) {
+      const rowSeats = seatsData.slice(i, i + seatsPerRow);
+
+      seatButtons.push(
+        <div key={`row-${i}`} className="seat-row">
+          {rowSeats.map((seat) => (
+            <Button
+              key={seat.seatNumber}
+              variant={
+                selectedSeats.includes(seat.seatNumber)
+                  ? 'success'
+                  : seat.status === 'Booked'
+                  ? 'secondary'
+                  : 'light'
+              }
+              onClick={() => {
+                if (seat.status !== 'Booked') {
+                  handleSeatClick(seat.seatNumber);
+                }
+              }}
+              className={`m-2 ${seat.status === 'Booked' ? 'disabled-seat' : 'seat'}`}
+              disabled={seat.status === 'Booked'}
+            >
+              <Armchair
+                weight={selectedSeats.includes(seat.seatNumber) ? 'bold' : 'regular'}
+                color={
+                  selectedSeats.includes(seat.seatNumber)
+                    ? '#007BFF'
+                    : seat.status === 'Booked'
+                    ? '#6C757D'
+                    : '#6C757D'
+                }
+                size={24}
+                className={seat.status === 'Booked' ? 'disabled-armchair' : ''}
+              />
+              <span className="sr-only">{` ${seat.seatNumber}`}</span>
+            </Button>
+          ))}
+        </div>
+      );
+    }
+
+    return seatButtons;
+  };
+
   return (
     <>
       <Navbar />
@@ -306,68 +317,23 @@ const SeatBooking = () => {
       <Container className="mt-5">
         <Grid container>
           <Grid item xs={12}>
-            <Typography variant="h2">Select Your Seats</Typography>
             <div className="timer-container">
               <Typography variant="body2" className="timer">
                 {Math.floor(timer / 60)}:{timer % 60 < 10 ? `0${timer % 60}` : timer % 60}
               </Typography>
+              <Typography variant="h2">Select Your Seats</Typography>
             </div>
-            <Card sx={{ p: 3 }}>{renderSeats()}</Card>
-            <Button variant="contained" color="primary" onClick={handleConfirm} className="mt-3" style={{ marginTop: 1230 }}>
+            <Card sx={{ p: 3, width: '50%', height: '70%', overflow: 'hidden', marginLeft:30, marginRight:80,position: 'relative' }}>
+              <div className="flight-container">
+              {renderSeats()}
+              </div>
+            </Card>
+            <Button variant="contained" color="primary" onClick={handleConfirm}>
               Confirm Booking
             </Button>
           </Grid>
         </Grid>
-        <Dialog open={isModalOpen} onClose={handleCloseModal}>
-          <DialogTitle>Booking Details</DialogTitle>
-          <DialogContent>
-            {/* Display the booking details inside the modal */}
-            <Box mb={2}>
-              <Typography variant="body1">
-                <strong>Booking Type:</strong> {bookingDetails.bookingType}
-              </Typography>
-            </Box>
-            <Box mb={2}>
-              <Typography variant="body1">
-                <strong>User ID:</strong> {bookingDetails.userId}
-              </Typography>
-            </Box>
-
-            {bookingDetails && bookingDetails[0] && bookingDetails[0].flightTickets.map((passenger, index) => (
-              <Box key={index} mb={2}>
-                <DialogContentText>
-                  <strong>Seat {passenger.seatNo}:</strong> Passenger Name: {passenger.name}, Age: {passenger.age}
-                </DialogContentText>
-              </Box>
-            ))}
-
-            {/* Add more details as needed */}
-          </DialogContent>
-          <DialogActions>
-
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleConfirmation}
-
-              className="mt-3"
-              style={{ marginTop: 1230 }}
-            >
-              Confirm Booking
-            </Button>
-            <Button onClick={handleCloseModal} color="primary">
-              Close
-            </Button>
-
-            {loading && (
-              <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
-                {/* Add your circular progress indicator here */}
-                <CircularProgress />
-              </div>
-            )}
-            {/* Add additional actions or buttons if needed */}
-          </DialogActions>
-        </Dialog>
+        {/* Your Dialog code here */}
       </Container>
     </>
   );

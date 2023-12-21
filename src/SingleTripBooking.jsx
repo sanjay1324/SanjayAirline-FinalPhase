@@ -12,7 +12,6 @@ import {
 } from '@material-ui/core';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
-import Paper from '@mui/material/Paper';
 import Navbar from './Navbar'
 
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -24,6 +23,7 @@ const Booking = () => {
   const [ticketCount, setTicketCount] = useState(1); // Initialize with one ticket
   const MAX_TICKETS = 5;
 
+  
   const firstAirlineName = sessionStorage.getItem('firstFlightAirlineName');
   const secondAirlineName = sessionStorage.getItem('secondFlightAirlineName');
   const source = sessionStorage.getItem('sourceAirportId');
@@ -56,12 +56,42 @@ const Booking = () => {
     setPassengers(updatedPassengers);
   };
 
+  const handlePassengerChanges = (index, field, value) => {
+    setPassengers((prevPassengers) => {
+      const updatedPassengers = [...prevPassengers];
+  
+      if (field === 'name') {
+        // Validate the name as a string
+        if (/^[a-zA-Z]*$/.test(value)) {
+          updatedPassengers[index] = { ...updatedPassengers[index], [field]: value };
+        } else {
+          // Optionally, handle invalid name input (e.g., show an error message).
+        }
+      } else if (field === 'age') {
+        // Validate the age as a number not exceeding 200
+        const ageValue = parseInt(value, 10); // Parse the value as an integer
+        if (!isNaN(ageValue) && ageValue >= 0 && ageValue <= 200) {
+          updatedPassengers[index] = { ...updatedPassengers[index], [field]: ageValue };
+        } else {
+          // Optionally, handle invalid age input (e.g., show an error message).
+        }
+      } else if (field === 'gender') {
+        updatedPassengers[index][field] = value;
+      }
+  
+      return updatedPassengers;
+    });
+  };
+  
+
   const handleSubmit = () => {
     const scheduleId = sessionStorage.getItem('scheduleId');
     const destinationScheduleId = sessionStorage.getItem('desinationScheduleId');
-
+    const secondAirlineName = sessionStorage.getItem('secondFlightAirlineName');
+    console.log(secondAirlineName)
     console.log(scheduleId)
-    console.log(scheduleId!=null && destinationScheduleId !=null)
+
+    // console.log(scheduleId!=null && destinationScheduleId !=null)
     // Check if both scheduleId and destinationScheduleId are present
     if (scheduleId!='null' && destinationScheduleId !='null') {
       // Connecting flights logic
@@ -76,8 +106,16 @@ const Booking = () => {
         };
 
         // Store passenger details separately for scheduleId and destinationScheduleId
-        scheduleIdPassengers.push({ ...passengerDetails, scheduleId});
-        destinationScheduleIdPassengers.push({ ...passengerDetails, airlineName:secondAirlineName,flightName:flightName,sourceAirportId:source,destinationAirportId:destination,dateTime:dateTime });
+        if(secondAirlineName!==null){
+          console.log(true)
+          scheduleIdPassengers.push({ ...passengerDetails, scheduleId,ticketStatus:"Booked"});
+          destinationScheduleIdPassengers.push({ ...passengerDetails, airlineName:secondAirlineName,flightName:flightName,sourceAirportId:source,destinationAirportId:destination,dateTime:dateTime });
+        }else{
+          scheduleIdPassengers.push({ ...passengerDetails, scheduleId});
+
+          destinationScheduleIdPassengers.push({ ...passengerDetails, "scheduleId":destinationScheduleId});
+          console.log(false)
+        }
       });
 
       Cookies.set('scheduleIdPassengers', JSON.stringify(scheduleIdPassengers));
@@ -123,6 +161,8 @@ const Booking = () => {
             <Card elevation={3} style={{ padding: '20px' }}>
               <Typography variant="h6">Passenger Details</Typography>
 
+              
+
               {passengers.map((passenger, index) => (
                 <div key={index} style={{ marginBottom: '20px' }}>
                   <Typography variant="subtitle1">Passenger {index + 1}</Typography>
@@ -130,20 +170,20 @@ const Booking = () => {
                     <div style={{ marginRight: '10px', flexGrow: 1 }}>
                       <Typography>Name:</Typography>
                       <TextField
-                        type="text"
-                        value={passenger.name}
-                        onChange={(e) => handlePassengerChange(index, 'name', e.target.value)}
-                        fullWidth
-                      />
+            type="text"
+            value={passenger.name}
+            onChange={(e) => handlePassengerChanges(index, 'name', e.target.value)}
+            fullWidth
+          />
                     </div>
                     <div style={{ marginRight: '10px', flexGrow: 1 }}>
                       <Typography>Age:</Typography>
                       <TextField
-                        type="text"
-                        value={passenger.age}
-                        onChange={(e) => handlePassengerChange(index, 'age', e.target.value)}
-                        fullWidth
-                      />
+            type="number"
+            value={passenger.age}
+            onChange={(e) => handlePassengerChanges(index, 'age', e.target.value)}
+            fullWidth
+          />
                     </div>
                     <div style={{ marginRight: '10px', flexGrow: 1 }}>
                       <Typography>Gender:</Typography>

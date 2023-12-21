@@ -151,6 +151,8 @@ export default function SignUp() {
                   onChange={(e) => setFirstName(e.target.value)}
                   error={Boolean(firstNameError)}
                   helperText={firstNameError}
+                  style={{ color: 'black' }} // Add this line to set the text color to black
+
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -264,7 +266,6 @@ export default function SignUp() {
                   onChange={(e) => setRole(e.target.value)}
                 >
                   <MenuItem value="User">User</MenuItem>
-                  <MenuItem value="Admin">Admin</MenuItem>
 
                 </Select>
               </Grid>

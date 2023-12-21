@@ -1,0 +1,21 @@
+.flight-container {
+    position: relative;
+    background-image: url('assets/flight.jpeg');
+    background-size: cover;
+    background-position: center;
+    width: 500px;
+    height: 1300px; /* Adjust the height as needed */
+    position: relative;
+    display: flex;
+    flex-direction: column; /* Arrange seats vertically */
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .flight-container .seat {
+    position: relative;
+    margin-bottom: 20px; /* Adjust the vertical spacing between seats */
+  }
+  
+  /* Add any other styling for seats as needed */
+  

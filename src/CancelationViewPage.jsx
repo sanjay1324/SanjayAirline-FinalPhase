@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Snackbar, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
+import axiosInstance from './AxiosInstance';
+import { ToastContainer, toast } from 'react-toastify';
 
 const BookingDetailsModal = ({ isOpen, onClose, bookingId }) => {
   const [bookingDetails, setBookingDetails] = useState(null);
@@ -57,9 +59,10 @@ const BookingDetailsModal = ({ isOpen, onClose, bookingId }) => {
 
   const handleConfirmCancel = async () => {
     try {
-      const response = await axios.delete(`https://localhost:7285/api/Bookings/CancelBooking/${bookingId}`);
+      const response = await axios.patch(`https://localhost:7285/api/Bookings/CancelBooking/${bookingId}`);
       // Handle cancellation response as needed
       setCancellationMessage(response.data);
+      toast.success("Booking Cancelled Successfully")
       setSnackbarOpen(true);
       onClose();
     } catch (error) {
@@ -77,8 +80,27 @@ const BookingDetailsModal = ({ isOpen, onClose, bookingId }) => {
     setSnackbarOpen(false);
   };
 
+  const handleCancelTicket = async (ticketNo,passengerName) =>{
+    try{
+      
+
+      const bookingType = bookingDetails.booking.bookingType
+      console.log(bookingType)
+    
+    const response = await axiosInstance.patch(`Bookings/CancelTicket/${bookingId}/${ticketNo}/${bookingType}/${passengerName}`)
+    console.log(response.data);
+    toast.success("Ticket Cancelled Sucessfully");
+  }catch(error){
+    console.log(error)
+    console.error('Error Ticket Cancelling booking:',error);
+  }
+
+
+  }
+
   return (
     <>
+    <ToastContainer/>
       <Dialog open={isOpen} onClose={onClose}>
         <DialogTitle>Booking Details</DialogTitle>
         <DialogContent>
@@ -88,9 +110,9 @@ const BookingDetailsModal = ({ isOpen, onClose, bookingId }) => {
                 <TableHead>
                   <TableRow>
                     <TableCell>Ticket No</TableCell>
+                    <TableCell>Booking Type</TableCell>
                     <TableCell>Name</TableCell>
                     <TableCell>Seat No</TableCell>
-                    <TableCell>RouteNo.</TableCell>
                     <TableCell>Source City</TableCell>
                     <TableCell>Destination City</TableCell>
                     <TableCell>Action</TableCell>
@@ -100,12 +122,12 @@ const BookingDetailsModal = ({ isOpen, onClose, bookingId }) => {
                   {bookingDetails.tickets.map((ticket, index) => (
                     <TableRow key={index}>
                       <TableCell>{ticket.ticketNo}</TableCell>
+                      <TableCell>{bookingDetails.booking.bookingType}</TableCell>
                       <TableCell>{ticket.name}</TableCell>
                       <TableCell>{ticket.seatNo}</TableCell>
-                      <TableCell>{ticket.scheduleId}</TableCell>
                       <TableCell>{ticket.sourceCity}</TableCell>
                       <TableCell>{ticket.destinationCity}</TableCell>
-                      <TableCell><Button>Cancel Ticket</Button></TableCell>
+                      <TableCell><Button onClick={() => handleCancelTicket(ticket.ticketNo, ticket.name)}>Cancel Ticket</Button></TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -114,27 +136,44 @@ const BookingDetailsModal = ({ isOpen, onClose, bookingId }) => {
           ) : (
             <p>Loading...</p>
           )}
+
+          {/* Render partner tickets if available */}
+          {bookingDetails && bookingDetails.partnerTickets && bookingDetails.partnerTickets.length > 0 && (
+            <TableContainer component={Paper}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Ticket No</TableCell>
+                    <TableCell>Airline</TableCell>
+                    <TableCell>Source Airport</TableCell>
+                    <TableCell>Destination Airport</TableCell>
+                    <TableCell>Seat No</TableCell>
+                    <TableCell>Name</TableCell>
+                    <TableCell>Action</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {bookingDetails.partnerTickets.map((partnerTicket, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{partnerTicket.ticketNo}</TableCell>
+                      <TableCell>{partnerTicket.airlineName}</TableCell>
+                      <TableCell>{partnerTicket.sourceAirportId}</TableCell>
+                      <TableCell>{partnerTicket.destinationAirportId}</TableCell>
+                      <TableCell>{partnerTicket.seatNo}</TableCell>
+                      <TableCell>{partnerTicket.name}</TableCell>
+                      <TableCell><Button onClick={() => handleCancelTicket(partnerTicket.ticketNo, partnerTicket.name)}>Cancel Ticket</Button></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
         </DialogContent>
         <DialogActions>
           <Button variant="contained" color="secondary" onClick={handleCancelBooking}>
             Cancel Booking
           </Button>
           <Button onClick={onClose}>Close</Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog open={isConfirmationOpen} onClose={handleCancelConfirmation}>
-        <DialogTitle>Confirmation</DialogTitle>
-        <DialogContent>
-          <p>Are you sure you want to cancel this booking?</p>
-        </DialogContent>
-        <DialogActions>
-          <Button variant="contained" color="secondary" onClick={handleConfirmCancel}>
-            Yes
-          </Button>
-          <Button onClick={handleCancelConfirmation}>
-            No
-          </Button>
         </DialogActions>
       </Dialog>
 

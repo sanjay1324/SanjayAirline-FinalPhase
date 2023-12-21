@@ -18,6 +18,7 @@ import {
   FormControlLabel,
 } from '@material-ui/core';
 import { useNavigate } from 'react-router-dom';
+import Navbar from './Navbar';
 
 import Cookies from 'js-cookie';
 
@@ -36,6 +37,7 @@ const Booking = () => {
 
 
 
+  
   const handleAddPassenger = () => {
     if (passengers.length < MAX_TICKETS && ticketCount < MAX_TICKETS) {
       setPassengers([...passengers, { name: '', age: '', gender: '' }]);
@@ -60,16 +62,58 @@ const Booking = () => {
     setReturnPassengers(updatedReturnPassengers);
   };
 
-  const handlePassengerChange = (index, field, value) => {
-    const updatedPassengers = [...passengers];
-    updatedPassengers[index][field] = value;
-    setPassengers(updatedPassengers);
+  const handlePassengerChanges = (index, field, value) => {
+    setPassengers((prevPassengers) => {
+      const updatedPassengers = [...prevPassengers];
+  
+      if (field === 'name') {
+        // Validate the name as a string
+        if (/^[a-zA-Z]*$/.test(value)) {
+          updatedPassengers[index] = { ...updatedPassengers[index], [field]: value };
+        } else {
+          // Optionally, handle invalid name input (e.g., show an error message).
+        }
+      } else if (field === 'age') {
+        // Validate the age as a number not exceeding 200
+        const ageValue = parseInt(value, 10); // Parse the value as an integer
+        if (!isNaN(ageValue) && ageValue >= 0 && ageValue <= 200) {
+          updatedPassengers[index] = { ...updatedPassengers[index], [field]: ageValue };
+        } else {
+          // Optionally, handle invalid age input (e.g., show an error message).
+        }
+      } else if (field === 'gender') {
+        updatedPassengers[index][field] = value;
+      }
+  
+      return updatedPassengers;
+    });
   };
 
-  const handleReturnPassengerChange = (index, field, value) => {
-    const updatedReturnPassengers = [...returnPassengers];
-    updatedReturnPassengers[index][field] = value;
-    setReturnPassengers(updatedReturnPassengers);
+  const handleReturnPassengerChanges = (index, field, value) => {
+    setPassengers((prevPassengers) => {
+      const updatedPassengers = [...prevPassengers];
+  
+      if (field === 'name') {
+        // Validate the name as a string
+        if (/^[a-zA-Z]*$/.test(value)) {
+          updatedPassengers[index] = { ...updatedPassengers[index], [field]: value };
+        } else {
+          // Optionally, handle invalid name input (e.g., show an error message).
+        }
+      } else if (field === 'age') {
+        // Validate the age as a number not exceeding 200
+        const ageValue = parseInt(value, 10); // Parse the value as an integer
+        if (!isNaN(ageValue) && ageValue >= 0 && ageValue <= 200) {
+          updatedPassengers[index] = { ...updatedPassengers[index], [field]: ageValue };
+        } else {
+          // Optionally, handle invalid age input (e.g., show an error message).
+        }
+      } else if (field === 'gender') {
+        updatedPassengers[index][field] = value;
+      }
+  
+      return updatedPassengers;
+    });
   };
 
   const handleReturnDateChange = (e) => {
@@ -141,16 +185,14 @@ const Booking = () => {
   
   return (
     <Container className="mt-5">
+      <Navbar/>
       <Card>
         <CardContent>
           <Typography variant="h5" component="div">
             Booking Form
           </Typography>
 
-          <FormControlLabel
-            control={<Checkbox checked={isRoundTrip} onChange={() => setIsRoundTrip(!isRoundTrip)} />}
-            label="Round Trip"
-          />
+          
 
           <TableContainer>
             <Table>
@@ -171,21 +213,21 @@ const Booking = () => {
                       <TextField
                         type="text"
                         value={passenger.name}
-                        onChange={(e) => handlePassengerChange(index, 'name', e.target.value)}
+                        onChange={(e) => handlePassengerChanges(index, 'name', e.target.value)}
                       />
                     </TableCell>
                     <TableCell>
                       <TextField
                         type="text"
                         value={passenger.age}
-                        onChange={(e) => handlePassengerChange(index, 'age', e.target.value)}
+                        onChange={(e) => handlePassengerChanges(index, 'age', e.target.value)}
                       />
                     </TableCell>
                     <TableCell>
                       <FormControl>
                         <Select
                           value={passenger.gender}
-                          onChange={(e) => handlePassengerChange(index, 'gender', e.target.value)}
+                          onChange={(e) => handlePassengerChanges(index, 'gender', e.target.value)}
                         >
                           <MenuItem value="Male">Male</MenuItem>
                           <MenuItem value="Female">Female</MenuItem>
@@ -207,6 +249,8 @@ const Booking = () => {
               </TableBody>
             </Table>
           </TableContainer>
+
+          
 
           {isRoundTrip && (
             <>
@@ -234,7 +278,7 @@ const Booking = () => {
                             type="text"
                             value={returnPassenger.name}
                             onChange={(e) =>
-                              handleReturnPassengerChange(index, 'name', e.target.value)
+                              handleReturnPassengerChanges(index, 'name', e.target.value)
                             }
                           />
                         </TableCell>
@@ -243,7 +287,7 @@ const Booking = () => {
                             type="text"
                             value={returnPassenger.age}
                             onChange={(e) =>
-                              handleReturnPassengerChange(index, 'age', e.target.value)
+                              handleReturnPassengerChanges(index, 'age', e.target.value)
                             }
                           />
                         </TableCell>
@@ -252,7 +296,7 @@ const Booking = () => {
                             <Select
                               value={returnPassenger.gender}
                               onChange={(e) =>
-                                handleReturnPassengerChange(index, 'gender', e.target.value)
+                                handleReturnPassengerChanges(index, 'gender', e.target.value)
                               }
                             >
                               <MenuItem value="Male">Male</MenuItem>
@@ -282,15 +326,23 @@ const Booking = () => {
             </>
           )}
 
-          <Button variant="contained" color="primary" onClick={handleAddPassenger}>
+          <Button variant="contained" color="primary" onClick={handleAddPassenger} style={{margin:20}}>
             Add Passenger
           </Button>
 
           <Button variant="contained" color="primary" onClick={handleSubmit}>
             Continue to Seat Booking
           </Button>
+
+          
         </CardContent>
+
+        <FormControlLabel
+            control={<Checkbox checked={isRoundTrip} onChange={() => setIsRoundTrip(!isRoundTrip)} />}
+            label="Not Same Passenger for Return means click here to enter passenger details"
+          />
       </Card>
+     
     </Container>
   );
 };
