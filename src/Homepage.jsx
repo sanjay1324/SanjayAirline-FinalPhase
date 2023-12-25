@@ -16,7 +16,7 @@ import {
   TableHead,
   TableRow,
 } from '@mui/material';
-
+import { Airplane, ArrowRight } from 'phosphor-react';
 import { useNavigate } from 'react-router-dom';
 import 'react-datepicker/dist/react-datepicker.css';
 import axiosInstance from './AxiosInstance';
@@ -25,7 +25,7 @@ import { sanjayairline } from './Constants';
 import { airlinesapi } from './Constants'
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
-
+import './css/homepage.css'
 const BookingComponent = () => {
   const [source, setSource] = useState('');
   const [destination, setDestination] = useState('');
@@ -39,10 +39,22 @@ const BookingComponent = () => {
   const [finalIntegratedConnectingFlights, setFinalIntegratedConnectingFlights] = useState([]);
   const navigate = useNavigate();
 
-  console.log(finalIntegratedConnectingFlights)
+  const LoggedIn = sessionStorage.getItem('LoggedIn');
+  const [isLoading, setIsLoading] = useState(false); // Add this line to define isLoading
+
+
+
+
+
 
   useEffect(() => {
-    // Fetch the list of cities from the API
+    // Fetch the list of cities from the 
+
+    if (LoggedIn === 'false') {
+      navigate('/');
+      toast.info("You are not authorized user")
+    }
+
     const fetchCities = async () => {
       try {
         const response = await axiosInstance.get('Airports');
@@ -157,23 +169,7 @@ const BookingComponent = () => {
       borderRadius: '5px', // Add border radius for rounded corners
     },
   };
-  const handleDateChange = (e) => {
-    const inputDate = e.target.value;
 
-    // Check if the entered date is in YYYY format
-    const isValidFormat = /^\d{4}-\d{2}-\d{2}$/.test(inputDate);
-
-    // Check if the year is either 2023 or 2024
-    const isValidYear = ['2023', '2024'].includes(inputDate.substring(0, 4));
-
-    // If the format and year are valid, update the state
-    if (isValidFormat && isValidYear) {
-      setDate(inputDate);
-    } else {
-      // If not valid, you can show an error or handle it in another way
-      console.error('Invalid date format or year.');
-    }
-  };
 
 
   const handleDropdownChange = (value) => {
@@ -193,24 +189,31 @@ const BookingComponent = () => {
     }
     else if (!date) {
       toast.error("Date Time is not Selected or Empty")
-    } else {
-
+    } else if (source == destination) {
+      toast.error("Source and Destination should not be same")
     }
-    try {
-      const response = await axiosInstance.get('Flight/search', {
-        params: { source, destination, date },
-      });
+    else {
+      try {
+        const response = await axiosInstance.get('Flight/search', {
+          params: { source, destination, date },
+        });
 
-      setFlightSchedules(response.data);
-      // Check if there are connecting flights
-      const hasConnectingFlights = response.data.some(schedule => schedule.sourceToConnecting && schedule.connectingToDestination);
-      setHasConnectingFlights(hasConnectingFlights);
+        setFlightSchedules(response.data);
+        // Check if there are connecting flights
+        const hasConnectingFlights = response.data.some(schedule => schedule.sourceToConnecting && schedule.connectingToDestination);
+        setHasConnectingFlights(hasConnectingFlights);
 
-    } catch (error) {
-      console.error('Error fetching flight schedules:', error);
-    } finally {
-      setLoading(false);
+      } catch (response) {
+        console.log(response.response.data)
+        if (response.response.data == 'Invalid date. Please provide a future date.') {
+          toast.error("Invalid date. Please provide a future date.");
+        }
+        console.error('Error fetching flight schedules:', response);
+      } finally {
+        setLoading(false);
+      }
     }
+
 
     try {
       await getIntegratedFlightDetails(sanjayairline, airlinesapi, source, destination, date);
@@ -294,109 +297,104 @@ const BookingComponent = () => {
 
   return (
     <>
-      <Navbar />
-      <ToastContainer />
+      <div className='additional-content'>
+        <Navbar />
+        <ToastContainer />
+        <Table style={{ marginTop: 100, background: 'linear-gradient( #e6e6fa, #FFE5CC)', width: 300, borderRadius: '100px' }}>
+          <TableHead>
+            <TableRow>
+              <TableCell colSpan={4}>
+                <Typography variant="h6" component="div" align="center" color>
+                  Flight Schedule
+                </Typography>
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableRow >
+            <TableCell colSpan={4} >
+              <div style={styles.container}>
+                <div style={styles.inputColumn}>
+                  <FormControl variant="outlined" fullWidth>
+                    <InputLabel id="source-label">Source</InputLabel>
+                    <Select
+                      labelId="source-label"
+                      label="Source"
+                      id="source"
+                      value={source}
+                      onChange={(e) => setSource(e.target.value)}
+                    >
+                      <MenuItem value="Select">Select</MenuItem>
+                      {cities.map((city) => (
+                        <MenuItem key={city.airportId} value={city.airportId}>
+                          {city.city}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
 
+                  <FormControl variant="outlined" fullWidth style={{ marginTop: '10px' }}>
+                    <InputLabel id="destination-label">Destination</InputLabel>
+                    <Select
+                      labelId="destination-label"
+                      label="Destination"
+                      id="destination"
+                      value={destination}
+                      onChange={(e) => setDestination(e.target.value)}
+                    >
+                      <MenuItem value="Select">Select</MenuItem>
+                      {cities.map((city) => (
+                        <MenuItem key={city.airportId} value={city.airportId}>
+                          {city.city}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
 
-      <Table style={{ marginTop: 100 }}>
-  <TableHead>
-    <TableRow>
-      <TableCell colSpan={4}>
-        <Typography variant="h6" component="div" align="center" color>
-          Flight Schedule
-        </Typography>
-      </TableCell>
-    </TableRow>
-  </TableHead>
-  <TableRow>
-    <TableCell colSpan={4}>
-      <div style={styles.container}>
-        <div style={styles.inputColumn}>
-          <FormControl variant="outlined" fullWidth>
-            <InputLabel id="source-label">Source</InputLabel>
-            <Select
-              labelId="source-label"
-              label="Source"
-              id="source"
-              value={source}
-              onChange={(e) => setSource(e.target.value)}
-            >
-              <MenuItem value="Select">Select</MenuItem>
-              {cities.map((city) => (
-                <MenuItem key={city.airportId} value={city.airportId}>
-                  {city.city}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+                </div>
+                <div style={styles.inputColumn}>
 
-          <FormControl variant="outlined" fullWidth style={{ marginTop: '10px' }}>
-            <InputLabel id="destination-label">Destination</InputLabel>
-            <Select
-              labelId="destination-label"
-              label="Destination"
-              id="destination"
-              value={destination}
-              onChange={(e) => setDestination(e.target.value)}
-            >
-              <MenuItem value="Select">Select</MenuItem>
-              {cities.map((city) => (
-                <MenuItem key={city.airportId} value={city.airportId}>
-                  {city.city}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          
-        </div>
-        <div style={styles.inputColumn}>
+                  <FormControl variant="outlined" style={{ width: '100%', marginTop: '10px' }}>
+                    <InputLabel id="booking-type-label">Booking Type</InputLabel>
+                    <Select
+                      labelId="booking-type-label"
+                      label="Booking Type"
+                      id="booking-type"
+                      value={bookingType}
+                      onChange={(e) => handleDropdownChange(e.target.value)}
+                    >
+                      <MenuItem value="Select">Select</MenuItem>
+                      <MenuItem value="SingleTrip">Single Trip</MenuItem>
+                      <MenuItem value="RoundTrip">Round Trip</MenuItem>
+                    </Select>
+                  </FormControl>
 
-        <FormControl variant="outlined" style={{ width: '100%', marginTop: '10px' }}>
-            <InputLabel id="booking-type-label">Booking Type</InputLabel>
-            <Select
-              labelId="booking-type-label"
-              label="Booking Type"
-              id="booking-type"
-              value={bookingType}
-              onChange={(e) => handleDropdownChange(e.target.value)}
-            >
-              <MenuItem value="Select">Select</MenuItem>
-              <MenuItem value="SingleTrip">Single Trip</MenuItem>
-              <MenuItem value="RoundTrip">Round Trip</MenuItem>
-            </Select>
-          </FormControl>
+                  <FormControl variant="outlined" style={{ width: '100%', marginTop: '10px' }}>
+                    <TextField type="date" id="departure-date" value={date} onChange={(e) => setDate(e.target.value)} />
+                  </FormControl>
 
-          <FormControl variant="outlined" style={{ width: '100%', marginTop: '10px' }}>
-            <TextField type="date" id="departure-date" value={date} onChange={(e) => setDate(e.target.value)} />
-          </FormControl>
+                </div>
+              </div>
+              <Button
+                variant="contained"
+                color="primary"
+                style={{ width: 400, marginTop: '10px', marginRight: '200px', marginLeft: '280px' }}
+                onClick={handleBooking}
+              >
+                Get Flights
+              </Button>
 
-          </div>       
-          </div>
-            <Button
-              variant="contained"
-              color="primary"
-              style={{ width: 400, marginTop: '10px', marginRight: '280px', marginLeft: '380px' }}
-              onClick={handleBooking}
-            >
-              Get Flights
-            </Button>
-      
-    </TableCell>
-          
-
-          
-  </TableRow>
-          
-
-        
-      
-</Table>
+            </TableCell>
 
 
 
-      <TableContainer component={Paper} style={{ borderRadius: 5, width: 1000, marginBottom: 50,  marginLeft: 50 }}>
+          </TableRow>
 
-        <Paper style={{ marginTop: '20px', padding: '20px' }}>
+
+
+
+        </Table>
+
+        <TableContainer style={{ borderRadius: 5, width: 1000, marginLeft: 50 }}>
           {loading ? (
             <CircularProgress />
           ) : flightSchedules.length > 0 ? (
@@ -406,9 +404,22 @@ const BookingComponent = () => {
                   <Typography variant="h6">Connecting Flights Available</Typography>
                   {flightSchedules.map((schedule, index) => (
                     <div key={index}>
-                      <Typography variant="subtitle1">
-                        {index === 0 ? 'Source to Connecting:' : 'Connecting to Destination:'}
-                      </Typography>
+                   <div style={{ display: 'flex', flexDirection: 'row' }}>
+    <Typography variant="subtitle1" style={{ marginRight: '10px' }}>
+      Source to Connecting:
+    </Typography>
+    <Typography variant="subtitle2" style={{ marginRight: '10px' }}>
+      {`${schedule.sourceToConnecting.sourceAirportId} to ${schedule.sourceToConnecting.destinationAirportId}`}
+    </Typography>
+    <Typography variant="subtitle1" style={{ marginRight: '10px' }}>
+      Connecting to Source:
+    </Typography>
+    <Typography variant="subtitle2">
+      {`${schedule.connectingToDestination.sourceAirportId} to ${schedule.connectingToDestination.destinationAirportId}`}
+    </Typography>
+  </div>
+
+
                       <TableContainer component={Paper}>
                         <Table>
                           <TableHead>
@@ -427,18 +438,16 @@ const BookingComponent = () => {
                               <TableCell>{schedule.sourceToConnecting.sourceAirportId}</TableCell>
                               <TableCell>{schedule.sourceToConnecting.destinationAirportId}</TableCell>
                               <TableCell>{schedule.sourceToConnecting.flightDuration}</TableCell>
-                              <TableCell>{(schedule.sourceToConnecting.dateTime)}</TableCell>
-                              <TableCell>{(schedule.sourceToConnecting.dateTime)}</TableCell>
-
+                              <TableCell>{schedule.sourceToConnecting.dateTime.split('T')[0]}</TableCell>
+                              <TableCell>{schedule.sourceToConnecting.dateTime.split('T')[1]}</TableCell>
                             </TableRow>
                             <TableRow key={schedule.connectingToDestination.scheduleId}>
                               <TableCell>{schedule.connectingToDestination.flightName}</TableCell>
                               <TableCell>{schedule.connectingToDestination.sourceAirportId}</TableCell>
                               <TableCell>{schedule.connectingToDestination.destinationAirportId}</TableCell>
                               <TableCell>{schedule.connectingToDestination.flightDuration}</TableCell>
-                              <TableCell>{(schedule.connectingToDestination.dateTime)}</TableCell>
-                              <TableCell>{(schedule.connectingToDestination.dateTime)}</TableCell>
-
+                              <TableCell>{schedule.connectingToDestination.dateTime.split('T')[0]}</TableCell>
+                              <TableCell>{schedule.connectingToDestination.dateTime.split('T')[1]}</TableCell>
                             </TableRow>
                           </TableBody>
                         </Table>
@@ -479,8 +488,8 @@ const BookingComponent = () => {
                             <TableCell>{schedule.sourceAirportId}</TableCell>
                             <TableCell>{schedule.destinationAirportId}</TableCell>
                             <TableCell>{schedule.flightDuration}</TableCell>
-                            <TableCell>{(schedule.dateTime)}</TableCell>
-                            <TableCell>{(schedule.dateTime)}</TableCell>
+                            <TableCell>{schedule.dateTime.split('T')[0]}</TableCell>
+                            <TableCell>{schedule.dateTime.split('T')[1]}</TableCell>
                             <TableCell>
                               <Button
                                 variant="contained"
@@ -501,64 +510,74 @@ const BookingComponent = () => {
           ) : (
             <Typography>No flights available for the selected criteria.</Typography>
           )}
-        </Paper>
-      </TableContainer>
 
-      <TableContainer component={Paper} style={{ marginTop: 120, borderRadius: 5, width: 1000, marginLeft: 50 }}>
-        {finalIntegratedConnectingFlights && finalIntegratedConnectingFlights.length > 0 && (
-          <TableContainer className="m-5" component={Paper} style={{ marginTop: 120, borderRadius: 5, width: 800, marginLeft: 50 }}>
-            {finalIntegratedConnectingFlights.map((connection, index) => (
-              <Table key={index} className="mb-5">
-                <TableHead>
-                  <TableRow>
+          <TableContainer>
+            <div className="connecting-flights-container">
+              {finalIntegratedConnectingFlights && finalIntegratedConnectingFlights.length > 0 ? (
+                finalIntegratedConnectingFlights.map((connection, index) => (
+                  <div key={index} className="connecting-flight mb-5">
                     <Typography variant="h6">Connecting Flight By My Airline and Other Airline</Typography>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {connection.SecondFlight.map((flight, i) => (
-                    <TableRow key={i}>
-                      <TableCell>
-                        <Paper className="p-5">
-                          <TableRow>
-                            <TableCell>{connection.FirstFlight.flightName}</TableCell>
-                            <TableCell>{connection.FirstFlight.sourceAirportId}</TableCell>
-                            <TableCell>{connection.FirstFlight.destinationAirportId}</TableCell>
-                            <TableCell>{`Flight Duration: ${connection.FirstFlight.flightDuration}`}</TableCell>
-                            <TableCell>{`Departure Date: ${connection.FirstFlight.dateTime.split('T')[0]}`}</TableCell>
-                            <TableCell>{`Departure Time: ${connection.FirstFlight.dateTime.split('T')[1]}`}</TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell>{flight.flightName}</TableCell>
-                            <TableCell>{flight.sourceAirportId}</TableCell>
-                            <TableCell>{flight.destinationAirportId}</TableCell>
-                            <TableCell>{`Flight Duration: ${flight.flightDuration}`}</TableCell>
-                            <TableCell>{`Departure Date: ${flight.dateTime.split('T')[0]}`}</TableCell>
-                            <TableCell>{`Departure Time: ${flight.dateTime.split('T')[1]}`}</TableCell>
-                          </TableRow>
-                        </Paper>
-                        <Button style={{ marginLeft: 450 }}
-                          variant="contained"
-                          color="primary"
-                          onClick={() =>
-                            handleConnectionBookingAction(
-                              flight.scheduleId,
-                              connection.FirstFlight.scheduleId,
-                              connection.FirstFlight,
-                              flight
-                            )
-                          }
-                        >
-                          BOOK
-                        </Button>
-                      </TableCell>
-           </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            ))}
+                    {connection.SecondFlight.map((flight, i) => (
+                      <div key={i} className="flight-details-container">
+                        <div className="flight-details left-details">
+                          <Typography variant="h6">First Flight Details</Typography>
+                          <Typography>Flight Name: {connection.FirstFlight.flightName}</Typography>
+                          <Typography>
+  Source Airport: {connection.FirstFlight.sourceAirportId} - {connection.FirstFlight.sourceAirportName}
+</Typography>
+                          <Typography>
+                            Destination Airport: {connection.FirstFlight.destinationAirportId} - {connection.FirstFlight.destinationAirportName}
+                            </Typography>
+                          <Typography>Flight Duration: {connection.FirstFlight.flightDuration}</Typography>
+                          <Typography>Date: {connection.FirstFlight.dateTime.split('T')[0]}</Typography>
+                          <Typography>Time: {connection.FirstFlight.dateTime.split('T')[1]}</Typography>
+                          <Airplane size={32} />
+                        </div>
+
+                        <div className="book-button-container">
+                          <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={() =>
+                              handleConnectionBookingAction(
+                                flight.scheduleId,
+                                connection.FirstFlight.scheduleId,
+                                connection.FirstFlight,
+                                flight
+                              )
+                            }
+                            disabled={isLoading}
+                          >
+                            {isLoading ? <Loader size={24} /> : <ArrowRight size={24} />} BOOK
+                          </Button>
+                        </div>
+
+
+                        <div className="flight-details right-details">
+                          <Typography variant="h6">Second Flight Details</Typography>
+                          <Typography>Flight Name: {flight.flightName}</Typography>
+                          <Typography>Source Airport: {flight.sourceAirportId} - {flight.sourceAirportName}</Typography>
+                          <Typography>Destination Airport: {flight.destinationAirportId} - {flight.destinationAirportName}</Typography>
+                          <Typography>Flight Duration: {flight.flightDuration}</Typography>
+                          <Typography>Date: {flight.dateTime.split('T')[0]}</Typography>
+                          <Typography>Time: {flight.dateTime.split('T')[1]}</Typography>
+                          <Airplane size={32} />
+                        </div>
+
+                      </div>
+                    ))}
+                  </div>
+                ))
+              ) : (
+                <Typography variant="h6">No connecting flights available.</Typography>
+              )}
+            </div>
           </TableContainer>
-        )}
-      </TableContainer>;
+        </TableContainer>
+      </div>
+
+
+
     </>
   );
 };

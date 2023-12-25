@@ -6,6 +6,8 @@ import Cookies from 'js-cookie';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import Navbar from './Navbar';
+import './den.css';
+
 
 const SeatBooking = () => {
   const [selectedOngoingSeats, setSelectedOngoingSeats] = useState([]);
@@ -13,16 +15,14 @@ const SeatBooking = () => {
   const [isConfirmed, setConfirmed] = useState(false);
   const [ongoingSeatsData, setOngoingSeatsData] = useState([]);
   const [returnSeatsData, setReturnSeatsData] = useState([]);
-  const [timer, setTimer] = useState(300); // 5 minutes in seconds
+  const [timer, setTimer] = useState(3000); // 5 minutes in seconds
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [editedOngoingSeats, setEditedOngoingSeats] = useState([]);
   const [editedReturnSeats, setEditedReturnSeats] = useState([]);
   const [showSecondJourney, setShowSecondJourney] = useState(false);
-
   const [isPassengerDetailsModalOpen, setPassengerDetailsModalOpen] = useState(false);
   const [selectedPassengerDetails, setSelectedPassengerDetails] = useState([]);
-
 
 
   useEffect(() => {
@@ -48,13 +48,12 @@ const SeatBooking = () => {
   }, []);
 
   const handleViewPassengerDetails = (seatNumbers, isReturnJourney) => {
-    const journeyType = isReturnJourney ? 'returnJourneyTickets' : 'singleJourneyTickets';
+    const returnJourneyTickets = JSON.parse(Cookies.get('returnJourneyTickets') || '[]');
+    const singleJourneyTickets = JSON.parse(Cookies.get('singleJourneyTickets') || '[]');
   
-    const existingFlightTickets = JSON.parse(Cookies.get(journeyType) || '[]');
-  
-    const passengers = existingFlightTickets.filter(
-      (passenger) => seatNumbers.includes(passenger.seatNo)
-    );
+    const passengers = isReturnJourney
+      ? returnJourneyTickets.filter((passenger) => seatNumbers.includes(passenger.seatNo))
+      : singleJourneyTickets.filter((passenger) => seatNumbers.includes(passenger.seatNo));
   
     if (passengers.length > 0) {
       setSelectedPassengerDetails(passengers);
@@ -64,6 +63,7 @@ const SeatBooking = () => {
       setPassengerDetailsModalOpen(false);
     }
   };
+  
   
   
 
@@ -89,48 +89,106 @@ const SeatBooking = () => {
     setEditedOngoingSeats([...selectedOngoingSeats]);
     setEditedReturnSeats([...selectedReturnSeats]);
   };
-
-  const handleSaveEdits = () => {
-    setIsEditing(false);
-    setSelectedOngoingSeats([...editedOngoingSeats]);
-    setSelectedReturnSeats([...editedReturnSeats]);
-  };
-
   const handleSeatClickEditable = (seatNumber, isReturnJourney) => {
     const editedSeatsSetter = isReturnJourney
       ? setEditedReturnSeats
       : setEditedOngoingSeats;
-
+  
+      console.log("sanjay")
     const editedSeats = isReturnJourney ? editedReturnSeats : editedOngoingSeats;
-
+  
     const editedSeatsCopy = [...editedSeats];
-
-    if (editedSeatsCopy.includes(seatNumber)) {
-      editedSeatsCopy.splice(editedSeatsCopy.indexOf(seatNumber), 1);
+  
+    // Check if the seat is already selected
+    const seatIndex = editedSeatsCopy.indexOf(seatNumber);
+  
+    if (seatIndex !== -1) {
+      // If selected, remove it (deselect)
+      editedSeatsCopy.splice(seatIndex, 1);
     } else {
+      // If not selected, add it (select)
       editedSeatsCopy.push(seatNumber);
     }
-
+  
     editedSeatsSetter(editedSeatsCopy);
+  
+    // Also update the corresponding cookie when a seat is clicked
+    const journeyType = isReturnJourney ? 'returnJourneyTickets' : 'singleJourneyTickets';
+    const existingTickets = JSON.parse(Cookies.get(journeyType) || '[]');
+  
+    const updatedTickets = existingTickets.map((ticket) => {
+      if (editedSeatsCopy.includes(ticket.seatNo)) {
+        return { ...ticket, seatNo: ticket.seatNo }; // Update seatNo only
+      }
+      return ticket;
+    });
+  
+    // Update the cookie with the correct information
+    Cookies.set(journeyType, JSON.stringify(updatedTickets));
   };
+  
+  
+  
+  useEffect(() => {
+    // Fetch the ticket count from sessionStorage
+    const ticketCount = sessionStorage.getItem('ticketCount');
+    if (!ticketCount) {
+      // Handle the case where ticketCount is not available
+    }
+
+    // Check if the number of selected seats exceeds the ticketCount
+    const totalSelectedSeats = selectedOngoingSeats.length + selectedReturnSeats.length;
+    if (totalSelectedSeats > ticketCount) {
+      // Handle the case where the selected seats exceed the allowed count
+    }
+  }, [selectedOngoingSeats, selectedReturnSeats]);
 
   const handleSeatClick = (seatNumber, isReturnJourney) => {
-    const selectedSeatsSetter = isReturnJourney
-      ? setSelectedReturnSeats
-      : setSelectedOngoingSeats;
+    // Check if the number of selected seats exceeds the ticketCount
+    const totalSelectedSeats = selectedOngoingSeats.length + selectedReturnSeats.length;
+    const ticketCount = sessionStorage.getItem('ticketCount');
+    if (totalSelectedSeats <= ticketCount) {
+      const selectedSeatsSetter = isReturnJourney ? setSelectedReturnSeats : setSelectedOngoingSeats;
 
-    const editedSeatsSetter = isReturnJourney
-      ? setEditedReturnSeats
-      : setEditedOngoingSeats;
+      const selectedSeats = isReturnJourney ? selectedReturnSeats : selectedOngoingSeats;
 
-    const selectedSeats = isReturnJourney ? selectedReturnSeats : selectedOngoingSeats;
-
-    if (selectedSeats.includes(seatNumber)) {
-      selectedSeatsSetter(selectedSeats.filter((seat) => seat !== seatNumber));
+      if (selectedSeats.includes(seatNumber)) {
+        selectedSeatsSetter(selectedSeats.filter((seat) => seat !== seatNumber));
+      } else {
+        selectedSeatsSetter([...selectedSeats, seatNumber]);
+      }
     } else {
-      selectedSeatsSetter([...selectedSeats, seatNumber]);
+      // Handle the case where the selected seats exceed the allowed count
     }
   };
+
+  const handleSaveEdits = () => {
+    setIsEditing(false);
+
+    const updateSeatInCookies = (existingTickets, editedSeats) => {
+      return existingTickets.map((passenger) => {
+        if (editedSeats.includes(passenger.seatNo)) {
+          return { ...passenger, seatNo: passenger.seatNo }; // Update seatNo only
+        }
+        return passenger;
+      });
+    };
+
+    // Update seatNo in singleJourneyTickets if applicable
+    const existingSingleJourneyTickets = JSON.parse(Cookies.get('singleJourneyTickets') || '[]');
+    Cookies.set(
+      'singleJourneyTickets',
+      JSON.stringify(updateSeatInCookies(existingSingleJourneyTickets, editedOngoingSeats))
+    );
+
+    // Update seatNo in returnJourneyTickets if applicable
+    const existingReturnJourneyTickets = JSON.parse(Cookies.get('returnJourneyTickets') || '[]');
+    Cookies.set(
+      'returnJourneyTickets',
+      JSON.stringify(updateSeatInCookies(existingReturnJourneyTickets, editedReturnSeats))
+    );
+  };
+
 
   const handleConfirm = async (status) => {
     try {
@@ -216,7 +274,8 @@ const SeatBooking = () => {
 
     const combinedResponse = await axiosInstance.post('Bookings/CreateBooking', combinedData);
 
-    sessionStorage.setItem('bookingId', combinedResponse.data.bookingId);
+    console.log(combinedResponse.data)
+    sessionStorage.setItem('bookingId', combinedResponse.data.booking.bookingId);
 
     setTimeout(() => {
               navigate('/ticket');
@@ -254,7 +313,7 @@ const SeatBooking = () => {
           key={seat.seatNumber}
           variant={
             selectedSeats.includes(seat.seatNumber)
-              ? 'failed'
+              ? 'success'
               : seat.status === 'Booked'
                 ? 'secondary'
                 : 'light'

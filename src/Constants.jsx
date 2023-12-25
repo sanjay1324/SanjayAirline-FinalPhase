@@ -1,9 +1,9 @@
 export const airlinesapi = {
  
-//    sanjayairline: {
-//         name: 'Sanjay Airline',
-//         apiPath: 'https://localhost:7285/api/',
-//     },
+   sanjayairline: {
+        name: 'Sanjay Airline',
+        apiPath: 'https://localhost:7285/api/',
+    },
     mahaairline: {
       name: 'Maha Airline',
       apiPath: `http://192.168.10.147:91/api/`,

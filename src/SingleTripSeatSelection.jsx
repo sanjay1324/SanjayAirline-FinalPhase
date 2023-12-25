@@ -120,8 +120,8 @@ const SeatBooking = () => {
 
   const ChangeSeatStatus = async (scheduleId, status, seatNumbers) => {
     try {
-      const response = await axiosInstance.put(
-        `Bookings/${scheduleId}/${status}`,
+      const response = await axiosInstance.patch(
+        `Integration/changeseatstatus/${scheduleId}/${status}`,
         JSON.stringify(seatNumbers),
         {
           headers: {
@@ -238,12 +238,90 @@ const SeatBooking = () => {
       if (combinedResponse.status === 200 || combinedResponse.status === 201) {
         console.log('Combined Response:', combinedResponse.data);
         toast.success('Booking Done');
+        const bookingId = combinedResponse.data.booking.bookingId
+        const book = sessionStorage.setItem('bookingId',bookingId)
+          
+// Assume you have a function to fetch additional details based on scheduleId
+const fetchAdditionalDetails = async (scheduleId) => {
+  try {
+    const response = await axiosInstance.get(`FlightSchedules/${scheduleId}`);
+    const scheduleDetails = response.data;
 
-        sessionStorage.setItem('bookingId',combinedResponse.data.bookingId)
-        // Show success toast after a delay
+    // Assuming the API response has properties like sourceAirportId, destinationAirportId, and dateTime
+    return {
+      sourceAirportId: scheduleDetails.sourceAirportId,
+      destinationAirportId: scheduleDetails.destinationAirportId,
+      dateTime: scheduleDetails.dateTime,
+    };
+  } catch (error) {
+    console.error('Error fetching additional details:', error);
+    throw error; // You might want to handle this error according to your application's requirements
+  }
+};
+
+// Your existing code
+const storedEmail = sessionStorage.getItem('email');
+const ticketDetails = existingFlightTickets;
+
+console.log(storedEmail);
+console.log(ticketDetails);
+
+if (storedEmail && ticketDetails && ticketDetails.length > 0) {
+  // Fetch additional details for each ticket
+  const fetchDetailsPromises = ticketDetails.map(async (ticket) => {
+    try {
+      const additionalDetails = await fetchAdditionalDetails(ticket.scheduleId);
+      return {
+        seat: ticket.seatNo,
+        passengerName: ticket.name,
+        age: ticket.age,
+        sourceAirport: additionalDetails.sourceAirportId,
+        destinationAirport: additionalDetails.destinationAirportId,
+        flightDate: additionalDetails.dateTime,
+        flightTime: additionalDetails.dateTime.split('T')[1],
+      };
+    } catch (error) {
+      // Handle the error or log it based on your application's requirements
+      console.error('Error processing ticket details:', error);
+      return null; // Or handle it in a way that fits your needs
+    }
+  });
+
+  // Wait for all details to be fetched
+  const ticketsData = await Promise.all(fetchDetailsPromises);
+
+  // Filter out any null values (tickets where additional details couldn't be fetched)
+  const validTicketsData = ticketsData.filter((data) => data !== null);
+
+  const emailData = {
+    email: storedEmail,
+    tickets: validTicketsData,
+  };
+
+  try {
+    const response = await axiosInstance.post('Email/send', emailData);
+    console.log(response.data); // Log the response from the server
+
+    // You can handle success or further actions here
+  } catch (error) {
+    console.error('Error sending email:', error);
+  }
+
+
+}
+
+      
+
+        
+        
+       
         setTimeout(() => {
           navigate('/ticket');
         }, 3000); // Delay in milliseconds
+
+        Object.keys(Cookies.get()).forEach((cookieName) => {
+          Cookies.remove(cookieName);
+        });
 
       } else {
         // If the response status is not 200 or 201, handle accordingly
@@ -333,7 +411,56 @@ const SeatBooking = () => {
             </Button>
           </Grid>
         </Grid>
-        {/* Your Dialog code here */}
+        <Dialog open={isModalOpen} onClose={handleCloseModal}>
+          <DialogTitle>Booking Details</DialogTitle>
+          <DialogContent>
+            {/* Display the booking details inside the modal */}
+            <Box mb={2}>
+              <Typography variant="body1">
+                <strong>Booking Type:</strong> {bookingDetails.bookingType}
+              </Typography>
+            </Box>
+            <Box mb={2}>
+              <Typography variant="body1">
+                <strong>User ID:</strong> {bookingDetails.userId}
+              </Typography>
+            </Box>
+
+            {bookingDetails && bookingDetails[0] && bookingDetails[0].flightTickets.map((passenger, index) => (
+              <Box key={index} mb={2}>
+                <DialogContentText>
+                  <strong>Seat {passenger.seatNo}:</strong> Passenger Name: {passenger.name}, Age: {passenger.age}
+                </DialogContentText>
+              </Box>
+            ))}
+
+            {/* Add more details as needed */}
+          </DialogContent>
+          <DialogActions>
+
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleConfirmation}
+
+              className="mt-3"
+              style={{ marginTop: 1230 }}
+            >
+              Confirm Booking
+            </Button>
+            <Button onClick={handleCloseModal} color="primary">
+              Close
+            </Button>
+
+            {loading && (
+              <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
+                {/* Add your circular progress indicator here */}
+                <CircularProgress />
+              </div>
+            )}
+            {/* Add additional actions or buttons if needed */}
+          </DialogActions>
+        </Dialog>
       </Container>
     </>
   );

@@ -18,7 +18,6 @@ const SeatBooking = () => {
   const [selectedReturnSeatCount, setSelectedReturnSeatCount] = useState(0);
   const [selectedSecondAirlineSeatCount, setSelectedSecondAirlineSeatCount] = useState(0);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-
   const [ongoingSeatsData, setOngoingSeatsData] = useState([]);
   const [returnSeatsData, setReturnSeatsData] = useState([]);
   const navigate = useNavigate();
@@ -283,7 +282,7 @@ const SeatBooking = () => {
 
       if (seatIsSelected) {
         // Deselect the seat if it's already selected
-        selectedSeatsSetter((prevSelectedSeats) =>
+        selectedSecondAirlineSeatsSetter((prevSelectedSeats) =>
           prevSelectedSeats.filter((seat) => seat !== seatNumber)
         );
       } else {
@@ -491,38 +490,31 @@ const SeatBooking = () => {
 
           const partnerBooking = combinedResponse.data.ticket;
 
+
           if (Array.isArray(partnerBooking) && partnerBooking.length > 0) {
-            const transformedPassengers = [];
+            const transformedPassengers = partnerBooking.map((passenger) => ({
+              name: passenger.name,
+              age: passenger.age,
+              gender: passenger.gender,
+              seatNo: passenger.seatNo,
+              airlineName: "SanjayAirline",
+              flightName: passenger.flightName,
+              sourceAirportId: passenger.sourceAirportId,
+              destinationAirportId: passenger.destinationAirportId,
+              dateTime: passenger.dateTime,
+              status: 'Booked',
+              bookingId: Id,
+              ticketNo: passenger.ticketNo,
+            }));
 
-            for (const passenger of partnerBooking) {
-              const transformedObject = {
-                name: passenger.name,
-                age: passenger.age,
-                gender: passenger.gender,
-                seatNo: passenger.seatNo,
-                airlineName: "SanjayAirline",
-                flightName: passenger.flightName,
-                sourceAirportId: passenger.sourceAirportId,
-                destinationAirportId: passenger.destinationAirportId,
-                dateTime: passenger.dateTime,
-                status: 'Booked',
-                bookingId: Id,
-                ticketNo: passenger.ticketNo,
-              };
-
-
-              transformedPassengers.push(transformedObject);
-            }
-
-            console.log(transformedPassengers);
+            console.log("sa",transformedPassengers);
 
             sessionStorage.setItem('bookingId', Id);
 
-            // Post the data to the second API endpoint
             const url = '/Integration/partnerbooking'; // Add a leading slash if needed
             const secondApiResponse = await axiosInstanceForApiPath.post(
               url,
-              [transformedPassengers[0]] // Wrap the object in an array if the API expects an array
+              transformedPassengers
             );
 
             console.log('Second API Response:', secondApiResponse);
@@ -533,15 +525,27 @@ const SeatBooking = () => {
             setTimeout(() => {
               navigate('/ticket');
             }, 3000); // Delay in milliseconds
+
+
+            Object.keys(Cookies.get()).forEach((cookieName) => {
+              Cookies.remove(cookieName);
+            });
+
+            const keysToPreserve = ['token', 'Email', 'userId', 'userName', 'role'];
+
+  // Get all keys from the session storage
+  const allKeys = Object.keys(sessionStorage);
+
+  // Iterate through the keys
+  allKeys.forEach((key) => {
+    // Check if the key should be preserved
+    if (!keysToPreserve.includes(key)) {
+      // If not, remove the item from session storage
+      sessionStorage.removeItem(key);
+    }
+  });
+
           }
-
-
-
-
-
-
-
-
         }
 
 
@@ -585,11 +589,79 @@ const SeatBooking = () => {
 
       sessionStorage.setItem("bookingId", bookingId)
 
+
+
+      const fetchAdditionalDetails = async (scheduleId) => {
+        try {
+          const response = await axiosInstance.get(`FlightSchedules/${scheduleId}`);
+          const scheduleDetails = response.data;
+      
+          // Assuming the API response has properties like sourceAirportId, destinationAirportId, and dateTime
+          return {
+            sourceAirportId: scheduleDetails.sourceAirportId,
+            destinationAirportId: scheduleDetails.destinationAirportId,
+            dateTime: scheduleDetails.dateTime,
+          };
+        } catch (error) {
+          console.error('Error fetching additional details:', error);
+          throw error; // You might want to handle this error according to your application's requirements
+        }
+      };
+      
+      // Your existing code
+      const storedEmail = sessionStorage.getItem('email');
+      const ticketDetails = existingFlightTickets;
+      
+      console.log(storedEmail);
+      console.log(ticketDetails);
+      
+      if (storedEmail && ticketDetails && ticketDetails.length > 0) {
+        // Fetch additional details for each ticket
+        const fetchDetailsPromises = ticketDetails.map(async (ticket) => {
+          try {
+            const additionalDetails = await fetchAdditionalDetails(ticket.scheduleId);
+            return {
+              seat: ticket.seatNo,
+              passengerName: ticket.name,
+              age: ticket.age,
+              sourceAirport: additionalDetails.sourceAirportId,
+              destinationAirport: additionalDetails.destinationAirportId,
+              flightDate: additionalDetails.dateTime,
+              flightTime: additionalDetails.dateTime.split('T')[1],
+            };
+          } catch (error) {
+            // Handle the error or log it based on your application's requirements
+            console.error('Error processing ticket details:', error);
+            return null; // Or handle it in a way that fits your needs
+          }
+        });
+      
+        // Wait for all details to be fetched
+        const ticketsData = await Promise.all(fetchDetailsPromises);
+      
+        // Filter out any null values (tickets where additional details couldn't be fetched)
+        const validTicketsData = ticketsData.filter((data) => data !== null);
+      
+        const emailData = {
+          email: storedEmail,
+          tickets: validTicketsData,
+        };
+      
+        try {
+          const response = await axiosInstance.post('Email/send', emailData);
+          console.log(response.data); // Log the response from the server
+      
+          // You can handle success or further actions here
+        } catch (error) {
+          console.error('Error sending email:', error);
+        }
+      }
+
       setTimeout(() => {
         navigate('/ticket');
       }, 3000);
-      // Cookies.remove('singleJourneyTickets');
-      // Cookies.remove('returnJourneyTickets');
+      Cookies.remove('singleJourneyTickets');
+      Cookies.remove('returnJourneyTickets');
       // Set the confirmed state
     }
   }
@@ -826,7 +898,9 @@ const SeatBooking = () => {
       </Grid>
 
 
+
       {canConfirm && <Button onClick={handleTicketConfirm}>Confirm</Button>}
+
     </Container>
   );
 };

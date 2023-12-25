@@ -1,0 +1,53 @@
+ConnectingFlightsComponent.css
+
+.connecting-flights-container {
+    margin-top: 120px;
+    border-radius: 5px;
+    width: 1000px;
+  }
+  
+  .connecting-flight {
+    margin-bottom: 20px;
+  }
+  
+  .flight-details-container {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .flight-details {
+    width: 45%;
+  }
+  
+  .left-details {
+    background-color: #f0f0f0; /* Example background color */
+    padding: 20px;
+  }
+  
+  .right-details {
+    background-color: #e0e0e0; /* Example background color */
+    padding: 20px;
+  }
+  
+  .book-button-container {
+    display: flex;
+    align-items: flex-end;
+    margin-top: 20px;
+  }
+
+
+  .additional-content {
+    position: relative;
+    margin-top: 40px;
+    background-image: url('image/bg.jpg');
+    background-size: cover;
+    background-position: center;
+    width: 1150px;
+    position: relative;
+    display: flex;
+    flex-direction: column; /* Arrange seats vertically */
+    align-items: center;
+    justify-content: center;/* Set the height as per your requirement */
+  }
+  
+  

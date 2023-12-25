@@ -11,12 +11,13 @@ import SingleTripSeatSelection from './SingleTripSeatSelection'
 import SingleTripBooking from './SingleTripBooking';
 import RoundTrip from './BookingRound'
 import RoundTripBooking from './RoundTripBooking'
-import ConnectingFlightSeaSelection from './ConnectingFlightSeaSelection'
+import ConnectingFlightSeaSelection from './CCCCCC'
 import History from './UserHistory'
 import RoundTripSeatSelection from './RoundTripSeatSelection'
 import RoundTripReturnFlight from './BookingRound';
 import CancelBookingPage from './CancellationPage';
-import GenerateTicket from './GenerateTicket'
+import GenerateTicket from './GenerateTicket';
+import Confrim from './Confirm';
 function App() {
   return (
     <Router>
@@ -40,6 +41,7 @@ function App() {
         <Route path='/history' element={<History/>}/>
         <Route path='/Cancel' element={<CancelBookingPage/>}/>
         <Route path='/ticket' element={<GenerateTicket/>}/>
+        <Route path='/con' element={<Confrim/>}/>
         </Routes>
       </div>
     

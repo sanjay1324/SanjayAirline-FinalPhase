@@ -57,6 +57,28 @@ const BookingDetailsModal = ({ isOpen, onClose, bookingId }) => {
     setConfirmationOpen(true);
   };
 
+  const ChangeSeatStatus2 = async (apiPath, scheduleId, status, seatNumbers) => {
+    try {
+      const axiosInstanceForApiPath = axios.create({
+        baseURL: apiPath, // baseURL is the root URL of your API
+      });
+      const response = await axiosInstanceForApiPath.patch(
+        `Integration/changeseatstatus/${scheduleId}/${status}`,
+        JSON.stringify(seatNumbers),
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      console.log(response);
+      return response.data;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  };
+
   const handleConfirmCancel = async () => {
     try {
       const response = await axios.patch(`https://localhost:7285/api/Bookings/CancelBooking/${bookingId}`);
@@ -80,27 +102,53 @@ const BookingDetailsModal = ({ isOpen, onClose, bookingId }) => {
     setSnackbarOpen(false);
   };
 
-  const handleCancelTicket = async (ticketNo,passengerName) =>{
-    try{
-      
+  const handleCancelTicket = async (ticketNo, passengerName) => {
+    try {
 
       const bookingType = bookingDetails.booking.bookingType
       console.log(bookingType)
-    
-    const response = await axiosInstance.patch(`Bookings/CancelTicket/${bookingId}/${ticketNo}/${bookingType}/${passengerName}`)
-    console.log(response.data);
-    toast.success("Ticket Cancelled Sucessfully");
-  }catch(error){
-    console.log(error)
-    console.error('Error Ticket Cancelling booking:',error);
-  }
+
+      const response = await axiosInstance.patch(`Bookings/CancelTicket/${bookingId}/${ticketNo}/${bookingType}/${passengerName}`)
+      console.log(response.data);
+      const Check = response.data
+      console.log(Check)
+
+      console.log(passengerName)
+      if (Check == 'Ticket cancelled successfully.') {
+        const apiPath = sessionStorage.getItem('secondFlightApiPath')
+        console.log(apiPath)
+        const axiosInstanceForApiPath = axios.create({
+          baseURL: apiPath, // baseURL is the root URL of your API
+        });
+        const response = await axiosInstanceForApiPath.patch(
+
+          `Integration/cancelticketsinpartnerbooking/${bookingId}`,
+          [passengerName],
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        console.log(response);
+
+        // await ChangeSeatStatus2(apiPath, scheduleId, 'Available', seatNumber3);
+
+        toast.success("Ticket Cancelled Sucessfully");
+
+      }
+    } catch (error) {
+      console.log(error)
+      console.error('Error Ticket Cancelling booking:', error);
+    }
 
 
   }
 
   return (
     <>
-    <ToastContainer/>
+      <ToastContainer />
       <Dialog open={isOpen} onClose={onClose}>
         <DialogTitle>Booking Details</DialogTitle>
         <DialogContent>
@@ -174,6 +222,21 @@ const BookingDetailsModal = ({ isOpen, onClose, bookingId }) => {
             Cancel Booking
           </Button>
           <Button onClick={onClose}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={isConfirmationOpen} onClose={handleCancelConfirmation}>
+        <DialogTitle>Confirmation</DialogTitle>
+        <DialogContent>
+          <p>Are you sure you want to cancel this booking?</p>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="contained" color="secondary" onClick={handleConfirmCancel}>
+            Yes
+          </Button>
+          <Button onClick={handleCancelConfirmation}>
+            No
+          </Button>
         </DialogActions>
       </Dialog>
 
