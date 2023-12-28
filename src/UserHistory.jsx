@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Container, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@material-ui/core';
 import { IdentificationBadge } from 'phosphor-react';
 import Navbar from './Navbar';
+import axiosInstance from './AxiosInstance';
 
 const UserHistory = () => {
   const [bookingHistory, setBookingHistory] = useState([]);
@@ -50,9 +51,10 @@ const UserHistory = () => {
   //     console.error('Error fetching booking history:', error);
   //   }
   // };
+ 
   const fetchBookingHistory = async (userId) => {
     try {
-      const response = await axios.get(`https://localhost:7285/api/Bookings/user/${userId}`);
+      const response = await axiosInstance.get(`Bookings/user/${userId}`);
       console.log(response.data);
   
       const bookingsWithDetails = await Promise.all(
@@ -73,13 +75,13 @@ const UserHistory = () => {
           }
   
           try {
-            const scheduleResponse = await axios.get(`https://localhost:7285/api/FlightSchedules/${scheduleId}`);
+            const scheduleResponse = await axiosInstance.get(`FlightSchedules/${scheduleId}`);
   
             const sourceId = scheduleResponse.data.sourceAirportId;
             const destinationId = scheduleResponse.data.destinationAirportId;
   
-            const sourceCityResponse = await axios.get(`https://localhost:7285/api/Airports/${sourceId}`);
-            const destinationCityResponse = await axios.get(`https://localhost:7285/api/Airports/${destinationId}`);
+            const sourceCityResponse = await axiosInstance.get(`Airports/${sourceId}`);
+            const destinationCityResponse = await axiosInstance.get(`Airports/${destinationId}`);
   
             const sourceCity = sourceCityResponse.data.city;
             const destinationCity = destinationCityResponse.data.city;

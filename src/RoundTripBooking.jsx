@@ -338,7 +338,7 @@ const Booking = () => {
         </CardContent>
 
         <FormControlLabel
-            control={<Checkbox checked={isRoundTrip} onChange={() => setIsRoundTrip(isRoundTrip)} />}
+            control={<Checkbox checked={isRoundTrip} onChange={() => setIsRoundTrip(!isRoundTrip)} />}
             label="Not Same Passenger for Return means click here to enter passenger details"
           />
       </Card>

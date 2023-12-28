@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CircularProgress, Container, Grid, Button, Card, Typography, Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText, Box } from '@mui/material';
+import { CircularProgress, Container, Grid, Button, Card, Typography, Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText, Box,CardContent } from '@mui/material';
 import { Armchair } from 'phosphor-react';
 import Cookies from 'js-cookie';
 import { useNavigate } from 'react-router-dom';
@@ -7,6 +7,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import Navbar from './Navbar';
 import axiosInstance from './AxiosInstance';
 import './den.css'
+import './css/homepage.css'
 
 const SeatBooking = () => {
   const [selectedSeats, setSelectedSeats] = useState([]);
@@ -22,6 +23,37 @@ const SeatBooking = () => {
   const scheduleId = sessionStorage.getItem('desinationScheduleId');
   const seatNumbers = selectedSeats;
 
+
+  useEffect(() => {
+    const booked = sessionStorage.getItem('isBooked');
+
+    if (booked === 'true') {
+      // Clear the 'isBooked' flag to allow access on the next visit
+      sessionStorage.removeItem('isBooked');
+
+      // Replace the current entry in the history stack with '/ticket'
+      navigate('/ticket', { replace: true });
+
+      // Prevent going back in browser history
+      window.history.pushState(null, '', '/ticket');
+
+      // Listen for changes to the history state and handle the back button
+      const handlePopState = () => {
+        // Replace the current entry again to block going back
+        window.history.pushState(null, '', '/ticket');
+      };
+
+      // Attach the event listener
+      window.addEventListener('popstate', handlePopState);
+
+      // Clean up the event listener on component unmount
+      return () => {
+        window.removeEventListener('popstate', handlePopState);
+      };
+    }
+  }, [navigate]);
+
+  
   useEffect(() => {
     const fetchSeatsData = async () => {
       try {
@@ -85,9 +117,9 @@ const SeatBooking = () => {
       return;
     }
 
-     ChangeSeatStatus(scheduleId, 'Booked', seatNumbers);
 
     console.log(selectedSeats);
+
 
     let seatIsSelected;
 
@@ -113,6 +145,7 @@ const SeatBooking = () => {
         console.log('Cannot select more seats than the allowed ticketCount.');
       }
     }
+
   };
 
   
@@ -145,26 +178,44 @@ const SeatBooking = () => {
 
       const existingFlightTickets = JSON.parse(Cookies.get('flightTickets') || '[]');
 
-      // Find the first available seat number for each selected seat
+     
+
       for (let i = 0; i < selectedSeats.length; i++) {
         const seat = selectedSeats[i];
-
-        // Check if the seat is already assigned
-        if (!existingFlightTickets.some((ticket) => ticket.seatNo === seat)) {
+      
+        // Check if the seat is already assigned to any passenger
+        const existingPassenger = existingFlightTickets.find((ticket) => ticket.seatNo === seat);
+      
+        // Check if the seat is already selected in the current iteration
+        const seatAlreadySelected = selectedSeats.slice(0, i).includes(seat);
+      
+        if (!existingPassenger && !seatAlreadySelected) {
           // Find the first passenger with a null seat number
-          const passengerIndex = existingFlightTickets.findIndex(
+          const passengerWithNullSeat = existingFlightTickets.find(
             (passenger) => passenger.seatNo === null
           );
-
-          if (passengerIndex !== -1) {
-            // Assign the seat to the passenger
-            existingFlightTickets[passengerIndex].seatNo = seat;
+      
+          if (passengerWithNullSeat) {
+            // Assign the seat to the passenger with a null seat number
+            passengerWithNullSeat.seatNo = seat;
           } else {
-            console.error('No passenger information found for seat assignment!');
-            break; // Exit the loop if no more passengers are available
+            // No passenger with a null seat number found, assign the seat to the current passenger
+            const currentPassenger = existingFlightTickets[i];
+      
+            if (currentPassenger) {
+              currentPassenger.seatNo = seat;
+            } else {
+              console.error('No passenger information found for seat assignment!');
+              break; // Exit the loop if no more passengers are available
+            }
           }
         }
       }
+      
+      
+      
+      
+      
 
       console.log('FlightTicket details before submitting:', existingFlightTickets);
       Cookies.set('flightTickets', JSON.stringify(existingFlightTickets)); // Correctly stringify the array
@@ -185,13 +236,11 @@ const SeatBooking = () => {
       console.log(selectedSeats)
       console.log(seatNumbers)
 
-      // Set a timer to change the seat status back to 'Available' after 5 minutes
-      const resetTimer = setTimeout(async () => {
-        await ChangeSeatStatus(scheduleId, 'Available', seatNumbers);
-      }, 5 * 60 * 1000); // 5 minutes in milliseconds
 
-      // Save the reset timer in state or context if you need to clear it later
-      setTimerInterval(resetTimer);
+      ChangeSeatStatus(scheduleId, 'Booked', seatNumbers);
+
+      // Set a timer to change the seat status back to 'Available' after 5 minutes
+    
 
 
     } catch (error) {
@@ -213,10 +262,14 @@ const SeatBooking = () => {
   
   const handleCloseModal = () => {
     // Close the modal
+    ChangeSeatStatus(scheduleId, 'Available', seatNumbers);
+
     setModalOpen(false);
 
     // Optionally, you can perform additional actions here
   };
+
+
   const handleConfirmation = async () => {
     try {
       setLoading(true);
@@ -225,7 +278,7 @@ const SeatBooking = () => {
 
       const combinedData = {
         booking: {
-          bookingType: sessionStorage.getItem('bookingType'),
+          bookingType: "Oneway",
           userId: sessionStorage.getItem('userId'),
           status: 'Booked',
         },
@@ -233,11 +286,14 @@ const SeatBooking = () => {
       };
 
       const combinedResponse = await axiosInstance.post('Bookings/CreateBooking', combinedData);
+      console.log(combinedResponse.data)
       console.log(combinedResponse.status);
 
       if (combinedResponse.status === 200 || combinedResponse.status === 201) {
         console.log('Combined Response:', combinedResponse.data);
         toast.success('Booking Done');
+        sessionStorage.setItem('isBooked',true)
+
         const bookingId = combinedResponse.data.booking.bookingId
         const book = sessionStorage.setItem('bookingId',bookingId)
           
@@ -246,6 +302,7 @@ const fetchAdditionalDetails = async (scheduleId) => {
   try {
     const response = await axiosInstance.get(`FlightSchedules/${scheduleId}`);
     const scheduleDetails = response.data;
+    console.log(scheduleDetails)
 
     // Assuming the API response has properties like sourceAirportId, destinationAirportId, and dateTime
     return {
@@ -260,7 +317,7 @@ const fetchAdditionalDetails = async (scheduleId) => {
 };
 
 // Your existing code
-const storedEmail = sessionStorage.getItem('email');
+const storedEmail = sessionStorage.getItem('Email');
 const ticketDetails = existingFlightTickets;
 
 console.log(storedEmail);
@@ -304,9 +361,11 @@ if (storedEmail && ticketDetails && ticketDetails.length > 0) {
 
     // You can handle success or further actions here
   } catch (error) {
+    console.log(error)
     console.error('Error sending email:', error);
   }
 
+  Cookies.remove('flightTickets');
 
 }
 
@@ -322,6 +381,8 @@ if (storedEmail && ticketDetails && ticketDetails.length > 0) {
         Object.keys(Cookies.get()).forEach((cookieName) => {
           Cookies.remove(cookieName);
         });
+
+
 
       } else {
         // If the response status is not 200 or 201, handle accordingly
@@ -342,10 +403,10 @@ if (storedEmail && ticketDetails && ticketDetails.length > 0) {
   const renderSeats = () => {
     const seatButtons = [];
     const seatsPerRow = 3;
-
+  
     for (let i = 0; i < seatsData.length; i += seatsPerRow) {
       const rowSeats = seatsData.slice(i, i + seatsPerRow);
-
+  
       seatButtons.push(
         <div key={`row-${i}`} className="seat-row">
           {rowSeats.map((seat) => (
@@ -365,15 +426,26 @@ if (storedEmail && ticketDetails && ticketDetails.length > 0) {
               }}
               className={`m-2 ${seat.status === 'Booked' ? 'disabled-seat' : 'seat'}`}
               disabled={seat.status === 'Booked'}
+              style={{
+                backgroundColor:
+                  seat.status === 'Available'
+                    ? '#28a745' // Green for available seats
+                    : selectedSeats.includes(seat.seatNumber)
+                    ? '#007BFF' // Blue for selected seats
+                    : seat.status === 'Booked'
+                    ? '#6C757D' // Grey for booked seats
+                    : '#6C757D', // Default color
+                borderColor: '#dee2e6', // Border color
+              }}
             >
               <Armchair
                 weight={selectedSeats.includes(seat.seatNumber) ? 'bold' : 'regular'}
                 color={
                   selectedSeats.includes(seat.seatNumber)
-                    ? '#007BFF'
+                    ? '#ffffff' // White for blue seats
                     : seat.status === 'Booked'
-                    ? '#6C757D'
-                    : '#6C757D'
+                    ? '#ffffff' // White for grey seats
+                    : '#495057' // Dark grey for others
                 }
                 size={24}
                 className={seat.status === 'Booked' ? 'disabled-armchair' : ''}
@@ -384,21 +456,26 @@ if (storedEmail && ticketDetails && ticketDetails.length > 0) {
         </div>
       );
     }
-
+  
     return seatButtons;
-  };
+  }
 
   return (
     <>
       <Navbar />
       <ToastContainer />
+      <div className='seat-selection'>
       <Container className="mt-5">
         <Grid container>
           <Grid item xs={12}>
             <div className="timer-container">
-              <Typography variant="body2" className="timer">
-                {Math.floor(timer / 60)}:{timer % 60 < 10 ? `0${timer % 60}` : timer % 60}
-              </Typography>
+            <Card style={{ position: 'absolute', top: 10, right: 10, backgroundColor: '#ff0000', color: '#fff' }}>
+      <CardContent>
+        <Typography variant="body2" className="timer">
+          Time Remaining: {Math.floor(timer / 60)}:{timer % 60 < 10 ? `0${timer % 60}` : timer % 60}
+        </Typography>
+      </CardContent>
+    </Card>
               <Typography variant="h2">Select Your Seats</Typography>
             </div>
             <Card sx={{ p: 3, width: '50%', height: '70%', overflow: 'hidden', marginLeft:30, marginRight:80,position: 'relative' }}>
@@ -420,11 +497,7 @@ if (storedEmail && ticketDetails && ticketDetails.length > 0) {
                 <strong>Booking Type:</strong> {bookingDetails.bookingType}
               </Typography>
             </Box>
-            <Box mb={2}>
-              <Typography variant="body1">
-                <strong>User ID:</strong> {bookingDetails.userId}
-              </Typography>
-            </Box>
+            
 
             {bookingDetails && bookingDetails[0] && bookingDetails[0].flightTickets.map((passenger, index) => (
               <Box key={index} mb={2}>
@@ -462,6 +535,7 @@ if (storedEmail && ticketDetails && ticketDetails.length > 0) {
           </DialogActions>
         </Dialog>
       </Container>
+      </div>
     </>
   );
 };

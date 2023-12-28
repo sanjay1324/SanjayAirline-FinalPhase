@@ -13,39 +13,31 @@ import {
 } from '@mui/material';
 import BookingDetailsModal from './CancelationViewPage';
 import Navbar from './Navbar';
+import axiosInstance from './AxiosInstance';
 
 const CancelBookingPage = () => {
   const [userId, setUserId] = useState('');
-  const [bookingIds, setBookingIds] = useState([]);
+  const [bookingDetails, setBookingDetails] = useState([]);
   const [selectedBookingId, setSelectedBookingId] = useState('');
   const [cancellationMessage, setCancellationMessage] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    // Fetch the user ID from sessionStorage
     const storedUserId = sessionStorage.getItem('userId');
     if (storedUserId) {
       setUserId(storedUserId);
     }
 
-    const fetchBookingDetails = async () =>{
-      try{
-        const response = await axios.get(`https://localhost:7285/api/Bookings/booking/${bookingId}`);
-        const bookingData = response.data;
-        console.log(response.data)
-
-      }catch{
-
-      }
-    }
-    // Fetch the user's bookings when the component mounts
     const fetchBookings = async () => {
       try {
-        const response = await axios.get(
-          `https://localhost:7285/api/Bookings/CancelBooking/${userId}`
+        const userId = sessionStorage.getItem('userId');
+        //          `https://localhost:7285/api/Bookings/CancelBooking/${userId}`,
+
+        const response = await axiosInstance.get(
+          `Bookings/CancelBooking/${userId}`
+          
         );
-        setBookingIds(response.data);
-        console.log(response.data)
+        setBookingDetails(response.data);
       } catch (error) {
         console.log('Error fetching bookings:', error);
       }
@@ -53,10 +45,6 @@ const CancelBookingPage = () => {
 
     fetchBookings();
   }, [userId]);
-
-  
-
-
 
   const handleViewDetails = (bookingId) => {
     setSelectedBookingId(bookingId);
@@ -67,31 +55,33 @@ const CancelBookingPage = () => {
     setIsModalOpen(false);
   };
 
-  
-
   return (
-    <div style={{marginTop:50}}>
+    <div style={{ marginTop: 50 }}>
       <h1>Booking Cancellation Page</h1>
-      
-      <Navbar/>
+
+      <Navbar />
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
               <TableCell>Booking ID</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Booking Type</TableCell>
               <TableCell>Action</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {bookingIds ? (
-              bookingIds.map((id) => (
-                <TableRow key={id}>
-                  <TableCell>{id}</TableCell>
+            {bookingDetails.length > 0 ? (
+              bookingDetails.map((booking) => (
+                <TableRow key={booking.bookingId}>
+                  <TableCell>{booking.bookingId}</TableCell>
+                  <TableCell>{booking.status}</TableCell>
+                  <TableCell>{booking.bookingType}</TableCell>
                   <TableCell>
                     <Button
                       variant="contained"
                       color="primary"
-                      onClick={() => handleViewDetails(id)}
+                      onClick={() => handleViewDetails(booking.bookingId)}
                     >
                       View Details
                     </Button>
@@ -100,7 +90,7 @@ const CancelBookingPage = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={2}>Loading...</TableCell>
+                <TableCell colSpan={4}>No bookings found.</TableCell>
               </TableRow>
             )}
           </TableBody>

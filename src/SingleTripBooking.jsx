@@ -8,20 +8,20 @@ import {
   Select,
   MenuItem,
   FormControl,
-  InputLabel,
-} from '@material-ui/core';
+  CardContent} from '@material-ui/core';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import Navbar from './Navbar'
-
+import './css/homepage.css'
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { ToastContainer, toast } from 'react-toastify';
 
 const Booking = () => {
   const navigate = useNavigate();
   const [bookingType, setBookingType] = useState('Single Trip');
   const [passengers, setPassengers] = useState([{ name: '', age: '', gender: '' }]);
   const [ticketCount, setTicketCount] = useState(1); // Initialize with one ticket
-  const MAX_TICKETS = 5;
+  const MAX_TICKETS = 4;
 
   
   const firstAirlineName = sessionStorage.getItem('firstFlightAirlineName');
@@ -91,9 +91,24 @@ const Booking = () => {
     console.log(secondAirlineName)
     console.log(scheduleId)
 
+    console.log(passengers.name)
+
+    if (ticketCount <= 0) {
+      toast.error('No Passenger is Added');
+      return;
+    }
+    const isEmptyField = passengers.some(
+      (passenger) => !passenger.name || !passenger.age || !passenger.gender
+    );
+  
+    if (isEmptyField) {
+      toast.error("All fields for all passengers are required");
+      return;
+    }
+
     // console.log(scheduleId!=null && destinationScheduleId !=null)
     // Check if both scheduleId and destinationScheduleId are present
-    if (scheduleId!='null' && destinationScheduleId !='null') {
+     if (scheduleId!='null' && destinationScheduleId !='null') {
       // Connecting flights logic
       const scheduleIdPassengers = [];
       const destinationScheduleIdPassengers = [];
@@ -143,89 +158,99 @@ const Booking = () => {
       navigate('/seats', { state: { bookingType } });
     }
   };
+  const cardColor = ticketCount >= MAX_TICKETS ? 'red' : 'green';
 
 
   return (
     <>
+          <div className='oneway-content'>
+
     <Navbar/>
-      <Container className="mt-5" style={{width:"100%"}} >
-        <Card>
+    <ToastContainer></ToastContainer>
+      <Container className="mt-5" style={{width:"600px"}} >
+        <Card >
           <Card>
-            <Typography variant="h5" component="div">
-              Passenger Details
-            </Typography>
-            <Typography variant="body1" component="div">
-              No. of Tickets: {ticketCount}
-            </Typography>
+          <Card style={{ position: 'absolute', top: 0, right: 0, backgroundColor: cardColor }}>
 
-            <Card elevation={3} style={{ padding: '20px' }}>
-              <Typography variant="h6">Passenger Details</Typography>
+      <CardContent>
+        <Typography variant="h5" component="div">
+          Passenger Details
+        </Typography>
+        <Typography variant="body1" component="div">
+          No. of Tickets: {ticketCount}
+        </Typography>
+      </CardContent>
+    </Card>
 
-              
+    <form onSubmit={handleSubmit} style={{ maxWidth: '600px', margin: 'auto' }}>
+  <Card style={{ padding: '20px', marginBottom: '20px' }}>
+    <Typography variant="h6">Passenger Details</Typography>
+    {passengers.map((passenger, index) => (
+      <div key={index} style={{ marginBottom: '20px' }}>
+        <Typography variant="subtitle1">Passenger {index + 1}</Typography>
+        <div style={{ display: 'flex', marginBottom: '10px' }}>
+          <div style={{ marginRight: '10px', flexGrow: 1 }}>
+            <Typography>Name:</Typography>
+            <TextField
+              type="text"
+              value={passenger.name}
+              onChange={(e) => handlePassengerChanges(index, 'name', e.target.value)}
+              fullWidth
+            />
+          </div>
+          <div style={{ marginRight: '10px', flexGrow: 1 }}>
+            <Typography>Age:</Typography>
+            <TextField
+              type="number"
+              value={passenger.age}
+              onChange={(e) => handlePassengerChanges(index, 'age', e.target.value)}
+              fullWidth
+            />
+          </div>
+          <div style={{ marginRight: '10px', flexGrow: 1 }}>
+            <Typography>Gender:</Typography>
+            <FormControl fullWidth>
+              <Select
+                value={passenger.gender}
+                onChange={(e) => handlePassengerChange(index, 'gender', e.target.value)}
+              >
+                <MenuItem value="Male">Male</MenuItem>
+                <MenuItem value="Female">Female</MenuItem>
+                <MenuItem value="Other">Other</MenuItem>
+              </Select>
+            </FormControl>
+          </div>
+          <Button
+            variant="contained" 
+            color="primary" 
+            style={{
+              height: '50px',
+              width: '150px',
+              marginTop: '15px',
+              marginLeft: '10px',
+            }}
+            onClick={() => handleDeletePassenger(index)}
+          >
+            Delete Passenger
+          </Button>
+        </div>
+      </div>
+    ))}
 
-              {passengers.map((passenger, index) => (
-                <div key={index} style={{ marginBottom: '20px' }}>
-                  <Typography variant="subtitle1">Passenger {index + 1}</Typography>
-                  <div style={{ display: 'flex', marginBottom: '10px' }}>
-                    <div style={{ marginRight: '10px', flexGrow: 1 }}>
-                      <Typography>Name:</Typography>
-                      <TextField
-            type="text"
-            value={passenger.name}
-            onChange={(e) => handlePassengerChanges(index, 'name', e.target.value)}
-            fullWidth
-          />
-                    </div>
-                    <div style={{ marginRight: '10px', flexGrow: 1 }}>
-                      <Typography>Age:</Typography>
-                      <TextField
-            type="number"
-            value={passenger.age}
-            onChange={(e) => handlePassengerChanges(index, 'age', e.target.value)}
-            fullWidth
-          />
-                    </div>
-                    <div style={{ marginRight: '10px', flexGrow: 1 }}>
-                      <Typography>Gender:</Typography>
-                      <FormControl fullWidth>
-                        <Select
-                          value={passenger.gender}
-                          onChange={(e) => handlePassengerChange(index, 'gender', e.target.value)}
-                        >
-                          <MenuItem value="Male">Male</MenuItem>
-                          <MenuItem value="Female">Female</MenuItem>
-                          <MenuItem value="Other">Other</MenuItem>
-                        </Select>
-                      </FormControl>
-                    </div>
-                    <Button
-  variant="contained" color="primary" 
-  style={{
-    height: '50px',
-    width: '150px',
-    marginTop: '15px',
-    marginLeft: '10px',
-  }}
-  onClick={() => handleDeletePassenger(index)}
->
-  Delete Passenger
-</Button>
+    <Button variant="contained" color="primary" onClick={handleAddPassenger} style={{ marginBottom: '10px' }}>
+      Add Passenger
+    </Button>
+  </Card>
 
-                  </div>
-                </div>
-              ))}
+  <Button type="submit" variant="contained" color="primary" style={{ width: '100%' }}>
+    Continue to Seat Booking
+  </Button>
+</form>
 
-              <Button variant="contained" color="primary" onClick={handleAddPassenger} style={{margin:10}}>
-                Add Passenger
-              </Button>
-
-              <Button variant="contained" color="primary" onClick={handleSubmit}>
-                Continue to Seat Booking
-              </Button>
-            </Card>
           </Card>
         </Card>
       </Container>
+      </div>
     </>
   );
 };

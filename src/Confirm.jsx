@@ -1,5 +1,5 @@
 // Import necessary libraries
-import React from 'react';
+import React,{useEffect} from 'react';
 import Cookies from 'js-cookie';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -15,15 +15,44 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
-
+import Navbar from './Navbar'
 const ConfirmationPage = () => {
 
     const navigate = useNavigate();
 
+    useEffect(() => {
+      const booked = sessionStorage.getItem('isBooked');
+  
+      if (booked === 'true') {
+        // Clear the 'isBooked' flag to allow access on the next visit
+        sessionStorage.removeItem('isBooked');
+  
+        // Replace the current entry in the history stack with '/ticket'
+        navigate('/ticket', { replace: true });
+  
+        // Prevent going back in browser history
+        window.history.pushState(null, '', '/ticket');
+  
+        // Listen for changes to the history state and handle the back button
+        const handlePopState = () => {
+          // Replace the current entry again to block going back
+          window.history.pushState(null, '', '/ticket');
+        };
+  
+        // Attach the event listener
+        window.addEventListener('popstate', handlePopState);
+  
+        // Clean up the event listener on component unmount
+        return () => {
+          window.removeEventListener('popstate', handlePopState);
+        };
+      }
+    }, [navigate]);
+
   const handleConfirm = async () => {
     const combinedData = {
       booking: {
-        bookingType: 'Single',
+        bookingType: 'Oneway',
         userId: sessionStorage.getItem('userId'),
         status: 'Booked',
       },
@@ -54,6 +83,9 @@ const ConfirmationPage = () => {
 
         const axiosInstanceForApiPath = axios.create({
           baseURL: apiPath,
+          headers: {
+            'Authorization': `Bearer ${sessionStorage.getItem('token')}`,
+          },
         });
 
         const Id = combinedResponse.data.booking.bookingId;
@@ -91,6 +123,7 @@ const ConfirmationPage = () => {
 
           toast.success('Booking Successful');
 
+          sessionStorage.setItem("isBooked",true);
           // Show success toast after a delay
           setTimeout(() => {
             navigate('/ticket');
@@ -99,6 +132,12 @@ const ConfirmationPage = () => {
       }
 
       console.log('Booking, FlightTicket, and FlightSeat created successfully');
+
+      Cookies.remove('scheduleIdPassengers');
+      Cookies.remove('destinationScheduleIdPassengers');
+      clearSessionStorage();
+
+      
     } catch (error) {
       console.log(error);
       console.error('Combined API Error:', error.response);
@@ -112,11 +151,61 @@ const ConfirmationPage = () => {
     Cookies.get('destinationScheduleIdPassengers') || '[]'
   );
 
+  const clearSessionStorage = () => {
+    // Items to retain
+    const retainItems = ['userId', 'token', 'Email', 'username', 'role','bookingId'];
+  
+    // Iterate through sessionStorage and remove items not in the retainItems list
+    for (let key in sessionStorage) {
+      if (!retainItems.includes(key)) {
+        sessionStorage.removeItem(key);
+      }
+    }
+  };
+
+  const apiPath = sessionStorage.getItem('secondFlightApiPath');
+  console.log(apiPath);
+  const partnerScheduleId = sessionStorage.getItem('desinationScheduleId');
+
+
+
+
+  const handleCancel = async () => {
+     navigate('/connecting-flight-seat');
+    //  await ChangeSeatStatus2(apiPath, partnerScheduleId, 'Available', seatNumber);
+
+  };
+
+  const ChangeSeatStatus2 = async (apiPath, scheduleId, status, seatNumbers) => {
+    try {
+      const axiosInstanceForApiPath = axios.create({
+        baseURL: apiPath, // baseURL is the root URL of your API
+      });
+      const response = await axiosInstanceForApiPath.patch(
+        `Integration/changeseatstatus/${scheduleId}/${status}`,
+        JSON.stringify(seatNumbers),
+        {
+          headers: {
+            "Content-Type": "application/json",
+            'Authorization': `Bearer ${sessionStorage.getItem('token')}`, // Get the token from localStorage
+
+          },
+        }
+      );
+      console.log(response);
+      return response.data;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  };
   return (
     <div className="confirmation-page">
+      <NavBar/>
       <Typography variant="h4" component="h1" gutterBottom>
         Confirmation Page
       </Typography>
+
 
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <Paper elevation={3} sx={{ p: 2, mb: 2 }}>
@@ -180,9 +269,16 @@ Source to Connecting          </Typography>
       <Button variant="contained" onClick={handleConfirm}>
         Confirm Booking
       </Button>
+
+      <Button variant="contained" onClick={handleCancel}>
+        Cancel
+      </Button>
+
     </div>
   );
 };
 
 
 export default ConfirmationPage;
+
+

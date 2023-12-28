@@ -1,4 +1,3 @@
-ConnectingFlightsComponent.css
 
 .connecting-flights-container {
     margin-top: 120px;
@@ -35,11 +34,20 @@ ConnectingFlightsComponent.css
     margin-top: 20px;
   }
 
+  /* Reset some styles to normalize across browsers */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+
 
   .additional-content {
+  
     position: relative;
     margin-top: 40px;
-    background-image: url('image/bg.jpg');
+    background: url('./image/flightBackground.jpg'); /* Adjust the path */
     background-size: cover;
     background-position: center;
     width: 1150px;
@@ -47,7 +55,62 @@ ConnectingFlightsComponent.css
     display: flex;
     flex-direction: column; /* Arrange seats vertically */
     align-items: center;
-    justify-content: center;/* Set the height as per your requirement */
-  }
+    justify-content: center; /* Set the height as per your requirement */
+}
+
+.seat-selection{
+  position: relative;
+    margin-top: 40px;
+    background: url('./image/flightBackground.jpg'); /* Adjust the path */
+    background-size: cover;
+    background-position: center;
+    width: 1150px;
+    position: relative;
+    display: flex;
+    flex-direction: column; /* Arrange seats vertically */
+    align-items: center;
+    justify-content: center; 
+}
   
-  
+.oneway-content{
+  position: relative;
+  margin-top: 40px;
+  background-image: url('image/BookingFrom.jpg');
+  background-size: cover;
+  background-position: center;
+  width: 100%;
+  height: 100vh;
+  position: relative;
+  display: flex;
+  flex-direction: column; /* Arrange seats vertically */
+  align-items: center;
+  justify-content: center;/* Set the height as per your requirement */
+}
+
+.flight-schedule-container {
+  margin-bottom: 20px;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.flight-info {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 10px;
+}
+
+.flight-info > :not(:last-child) {
+  margin-right: 20px; /* Add margin between the first two elements */
+}
+
+.flight-info > :not(:first-child) {
+  margin-left: 20px; /* Add margin between the last two elements */
+}
+
+
+
+
+
+

@@ -22,26 +22,78 @@ import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import Navbar from './Navbar';
 import login from './assets/Ticket.gif';
-
+import axiosInstance from './AxiosInstance';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 const TicketGenerator = () => {
   const [bookingDetails, setBookingDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sourceCities, setSourceCities] = useState([]);
   const [destinationCities, setDestinationCities] = useState([]);
+  const [flightDates, setFlightDates] = useState([]); // Add state for flight dates
+  const [flightTimes, setFlightTimes] = useState([]); // Add state for flight times
+  const [partnerSourceCities, setPartnerSourceCities] = useState([]); // Add state for partner source cities
+  const [partnerDestinationCities, setPartnerDestinationCities] = useState([]); // Add state for partner destination cities
+  const [partnerFlightDates, setPartnerFlightDates] = useState([]); // Add state for partner flight dates
+  const [partnerFlightTimes, setPartnerFlightTimes] = useState([]); // Add state for partner flight times
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch the BookingId from sessionStorage
-    const bookingId = sessionStorage.getItem('bookingId');
+    const booked = sessionStorage.getItem('isBooked');
 
-    // Fetch booking details based on the BookingId
+    if (booked === 'true') {
+      // Clear the 'isBooked' flag to allow access on the next visit
+      sessionStorage.removeItem('isBooked');
+
+      // Replace the current entry in the history stack with '/ticket'
+      navigate('/ticket', { replace: true });
+
+      // Prevent going back in browser history
+      window.history.pushState(null, '', '/ticket');
+
+      // Listen for changes to the history state and handle the back button
+      const handlePopState = () => {
+        // Replace the current entry again to block going back
+        window.history.pushState(null, '', '/ticket');
+      };
+
+      // Attach the event listener
+      window.addEventListener('popstate', handlePopState);
+
+      // Clean up the event listener on component unmount
+      return () => {
+        window.removeEventListener('popstate', handlePopState);
+      };
+    }
+  }, [navigate]);
+
+  // Use the 'beforeunload' event to prevent going back to the booking page
+  useEffect(() => {
+    const handleBeforeUnload = (event) => {
+      const booked = sessionStorage.getItem('isBooked');
+
+      if (booked === 'true') {
+        // Display a warning message
+        event.returnValue = "You cannot go back to the previous page.";
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
+  useEffect(() => {
+    const bookingId = sessionStorage.getItem('bookingId');
+  
     const fetchBookingDetails = async () => {
       try {
-        const response = await axios.get(
-          `https://localhost:7285/api/Bookings/getBooking/${bookingId}`
+        const response = await axiosInstance.get(
+          `Bookings/getBooking/${bookingId}`
         );
         setBookingDetails(response.data);
 
-        // Fetch source and destination city using each scheduleId
         if (response.data.tickets && response.data.tickets.length > 0) {
           const sourceCityPromises = response.data.tickets.map((ticket) =>
             fetchAirportCities(ticket.scheduleId, 'source')
@@ -51,8 +103,42 @@ const TicketGenerator = () => {
             fetchAirportCities(ticket.scheduleId, 'destination')
           );
 
+          const dateTimePromises = response.data.tickets.map((ticket) =>
+            fetchFlightDetails(ticket.scheduleId)
+          );
+
           Promise.all(sourceCityPromises).then((cities) => setSourceCities(cities));
           Promise.all(destinationCityPromises).then((cities) => setDestinationCities(cities));
+          Promise.all(dateTimePromises).then((dateTimes) => {
+            const flightDates = dateTimes.map((dateTime) => dateTime.split(' ')[0]);
+            const flightTimes = dateTimes.map((dateTime) => dateTime.split(' ')[1]);
+            setFlightDates(flightDates);
+            setFlightTimes(flightTimes);
+          });
+        }
+
+        // Handle partner tickets separately
+        if (response.data.partnerTickets && response.data.partnerTickets.length > 0) {
+          const partnerSourceCityPromises = response.data.partnerTickets.map((partnerTicket) =>
+            fetchAirportCities(partnerTicket.scheduleId, 'source')
+          );
+
+          const partnerDestinationCityPromises = response.data.partnerTickets.map((partnerTicket) =>
+            fetchAirportCities(partnerTicket.scheduleId, 'destination')
+          );
+
+          const partnerDateTimePromises = response.data.partnerTickets.map((partnerTicket) =>
+            fetchFlightDetails(partnerTicket.scheduleId)
+          );
+
+          Promise.all(partnerSourceCityPromises).then((cities) => setPartnerSourceCities(cities));
+          Promise.all(partnerDestinationCityPromises).then((cities) => setPartnerDestinationCities(cities));
+          Promise.all(partnerDateTimePromises).then((dateTimes) => {
+            const flightDates = dateTimes.map((dateTime) => dateTime.split(' ')[0]);
+            const flightTimes = dateTimes.map((dateTime) => dateTime.split(' ')[1]);
+            setPartnerFlightDates(flightDates);
+            setPartnerFlightTimes(flightTimes);
+          });
         }
       } catch (error) {
         console.error('Error fetching booking details:', error);
@@ -68,14 +154,14 @@ const TicketGenerator = () => {
 
   const fetchAirportCities = async (scheduleId, type) => {
     try {
-      const scheduleResponse = await axios.get(
-        `https://localhost:7285/api/FlightSchedules/${scheduleId}`
+      const scheduleResponse = await axiosInstance.get(
+        `FlightSchedules/${scheduleId}`
       );
 
       const airportId = type === 'source' ? scheduleResponse.data.sourceAirportId : scheduleResponse.data.destinationAirportId;
 
-      const airportResponse = await axios.get(
-        `https://localhost:7285/api/Airports/${airportId}`
+      const airportResponse = await axiosInstance.get(
+        `Airports/${airportId}`
       );
 
       return airportResponse.data.city;
@@ -85,49 +171,77 @@ const TicketGenerator = () => {
     }
   };
 
-  const downloadTickets = () => {
-    const pdf = new jsPDF();
-    pdf.text('Booking Details', 20, 10);
-    pdf.autoTable({
-      head: [['Ticket No', 'Schedule ID', 'Source City', 'Destination City', 'Seat No', 'Name', 'Age', 'Gender']],
-      body: bookingDetails.tickets.map((ticket) => [
-        ticket.ticketNo,
-        ticket.scheduleId,
-        sourceCities[ticket.ticketNo], // Assuming ticketNo starts from 113
-        destinationCities[ticket.ticketNo], // Assuming ticketNo starts from 113
-        ticket.seatNo,
-        ticket.name,
-        ticket.age,
-        ticket.gender,
-      ]),
-    });
+  const fetchFlightDetails = async (scheduleId) => {
+    try {
+      //        `https://localhost:7285/api/FlightSchedules/${scheduleId}`
 
-    // Check if partnerTickets exist and add them to the PDF
-    if (bookingDetails.partnerTickets && bookingDetails.partnerTickets.length > 0) {
-      pdf.addPage(); // Add a new page for partner tickets
-      pdf.text('Partner Tickets', 20, 10);
-      pdf.autoTable({
-        head: [['Ticket No', 'Flight Name', 'Source City', 'Destination City', 'Seat No', 'Name', 'Age', 'Gender', 'Airline Name', 'Date and Time']],
-        body: bookingDetails.partnerTickets.map((partnerTicket) => [
-          partnerTicket.ticketNo,
-          partnerTicket.flightName,
-          // Fetch source and destination city for partner tickets
-          // You can modify this part based on your actual API endpoints
-          partnerTicket.sourceAirportId,
-          partnerTicket.destinationAirportId,
-          partnerTicket.seatNo,
-          partnerTicket.name,
-          partnerTicket.age,
-          partnerTicket.gender,
-          partnerTicket.airlineName,
-          partnerTicket.dateTime,
-        ]),
-      });
+      const scheduleResponse = await axiosInstance.get(
+        `FlightSchedules/${scheduleId}`
+      );
+      return scheduleResponse.data.dateTime;
+    } catch (error) {
+      console.error('Error fetching flight details:', error);
+      return '';
     }
-
-    pdf.save('tickets.pdf');
   };
 
+  const downloadTickets = () => {
+    const pdf = new jsPDF();
+
+    const addBoardingPass = (ticket, source, destination, flightDate, flightTime, isPartnerTicket = false) => {
+      const offsetY = isPartnerTicket ? 70 : 0;
+      const fontSize = isPartnerTicket ? 10 : 12;
+
+      pdf.setFont('Arial', 'normal');
+      pdf.setFontSize(fontSize);
+
+      pdf.setDrawColor(0);
+      pdf.setFillColor(255, 255, 255);
+      pdf.roundedRect(10, 5 + offsetY, 190, 115, 3, 3, 'FD');
+
+      pdf.text('Boarding Pass', 20, 15 + offsetY);
+      pdf.text(`Ticket No: ${ticket.ticketNo}`, 20, 25 + offsetY);
+      pdf.text(`Seat No: ${ticket.seatNo}`, 20, 35 + offsetY);
+      pdf.text(`Name: ${ticket.name}`, 20, 45 + offsetY);
+      pdf.text(`Age: ${ticket.age}`, 20, 55 + offsetY);
+      pdf.text(`Gender: ${ticket.gender}`, 20, 65 + offsetY);
+      pdf.text(`Source: ${source}`, 20, 75 + offsetY);
+      pdf.text(`Destination: ${destination}`, 20, 85 + offsetY);
+      pdf.text(`Flight Date: ${flightDate}`, 20, 95 + offsetY);
+      pdf.text(`Flight Time: ${flightTime}`, 20, 105 + offsetY);
+
+      pdf.setLineWidth(0.5);
+      pdf.line(20, 115 + offsetY, 190, 115 + offsetY);
+    };
+
+    if (bookingDetails) {
+      // Add boarding pass for each main ticket
+      bookingDetails.tickets.forEach((ticket, index) => {
+        const source = sourceCities[index] || 'N/A';
+        const destination = destinationCities[index] || 'N/A';
+        const flightDate = flightDates[index] || 'N/A';
+        const flightTime = flightTimes[index] || 'N/A';
+        addBoardingPass(ticket, source, destination, flightDate, flightTime);
+        pdf.addPage();
+      });
+
+      // Check if partnerTickets exist and add boarding pass for each partner ticket
+      if (bookingDetails.partnerTickets && bookingDetails.partnerTickets.length > 0) {
+        pdf.addPage();
+        bookingDetails.partnerTickets.forEach((partnerTicket, index) => {
+          const source = partnerSourceCities[index] || 'N/A';
+          const destination = partnerDestinationCities[index] || 'N/A';
+          const flightDate = partnerFlightDates[index] || 'N/A';
+          const flightTime = partnerFlightTimes[index] || 'N/A';
+          addBoardingPass(partnerTicket, source, destination, flightDate, flightTime, true);
+          pdf.addPage();
+        });
+      }
+
+      pdf.save('tickets.pdf');
+    }
+  };
+  
   return (
     <Container>
       <Navbar />

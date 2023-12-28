@@ -3,30 +3,44 @@ import axios from 'axios';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Snackbar, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 import axiosInstance from './AxiosInstance';
 import { ToastContainer, toast } from 'react-toastify';
+import { airlinesapi } from './Constants';
 
 const BookingDetailsModal = ({ isOpen, onClose, bookingId }) => {
   const [bookingDetails, setBookingDetails] = useState(null);
   const [cancellationMessage, setCancellationMessage] = useState('');
   const [isSnackbarOpen, setSnackbarOpen] = useState(false);
   const [isConfirmationOpen, setConfirmationOpen] = useState(false);
+  const [secondApiPath,setSecondApiPath] = useState('');
 
+function getApiPathForAirline(airlineName) {
+  const apiPath = airlinesapi[airlineName]?.apiPath || 'default-api-path';
+  return apiPath;
+}
   useEffect(() => {
     const fetchBookingDetails = async () => {
       try {
-        const response = await axios.get(`https://localhost:7285/api/Bookings/booking/${bookingId}`);
+        //        const response = await axios.get(`https://localhost:7285/api/Bookings/booking/${bookingId}`);
+
+        const response = await axiosInstance.get(`Bookings/booking/${bookingId}`);
         const bookingData = response.data;
-        console.log(response.data)
+        console.log(response.data.partnerTickets[0]?.airlineName)
+        sessionStorage.setItem('airlineName',response.data.partnerTickets[0]?.airlineName)
+        const storedAirlineName = sessionStorage.getItem('airlineName');
+        setSecondApiPath(storedAirlineName);
+// Use your constants file to get the corresponding apiPath
+        const apiPath = getApiPathForAirline(storedAirlineName);
+        console.log(apiPath)
 
         // Fetch additional details for each ticket
         const ticketsWithDetails = await Promise.all(
           bookingData.tickets.map(async (ticket) => {
-            const scheduleResponse = await axios.get(`https://localhost:7285/api/FlightSchedules/${ticket.scheduleId}`);
+            const scheduleResponse = await axiosInstance.get(`FlightSchedules/${ticket.scheduleId}`);
 
             const sourceAirportId = scheduleResponse.data.sourceAirportId;
             const destinationAirportId = scheduleResponse.data.destinationAirportId;
 
-            const sourceCityResponse = await axios.get(`https://localhost:7285/api/Airports/${sourceAirportId}`);
-            const destinationCityResponse = await axios.get(`https://localhost:7285/api/Airports/${destinationAirportId}`);
+            const sourceCityResponse = await axiosInstance.get(`Airports/${sourceAirportId}`);
+            const destinationCityResponse = await axiosInstance.get(`Airports/${destinationAirportId}`);
 
             const sourceCity = sourceCityResponse.data.city;
             const destinationCity = destinationCityResponse.data.city;
@@ -57,31 +71,10 @@ const BookingDetailsModal = ({ isOpen, onClose, bookingId }) => {
     setConfirmationOpen(true);
   };
 
-  const ChangeSeatStatus2 = async (apiPath, scheduleId, status, seatNumbers) => {
-    try {
-      const axiosInstanceForApiPath = axios.create({
-        baseURL: apiPath, // baseURL is the root URL of your API
-      });
-      const response = await axiosInstanceForApiPath.patch(
-        `Integration/changeseatstatus/${scheduleId}/${status}`,
-        JSON.stringify(seatNumbers),
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      console.log(response);
-      return response.data;
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
-  };
-
   const handleConfirmCancel = async () => {
     try {
-      const response = await axios.patch(`https://localhost:7285/api/Bookings/CancelBooking/${bookingId}`);
+      //patch(`https://localhost:7285/api/Bookings/CancelBooking/${bookingId}`)
+      const response = await axiosInstance.patch(`Bookings/CancelBooking/${bookingId}`);
       // Handle cancellation response as needed
       setCancellationMessage(response.data);
       toast.success("Booking Cancelled Successfully")
@@ -99,6 +92,7 @@ const BookingDetailsModal = ({ isOpen, onClose, bookingId }) => {
   };
 
   const handleSnackbarClose = () => {
+    console.log("Sanjay working")
     setSnackbarOpen(false);
   };
 
@@ -114,30 +108,44 @@ const BookingDetailsModal = ({ isOpen, onClose, bookingId }) => {
       console.log(Check)
 
       console.log(passengerName)
-      if (Check == 'Ticket cancelled successfully.') {
-        const apiPath = sessionStorage.getItem('secondFlightApiPath')
-        console.log(apiPath)
+      if (Check === 'Ticket cancelled successfully.') {
+        const apiPath = secondApiPath;
         const axiosInstanceForApiPath = axios.create({
-          baseURL: apiPath, // baseURL is the root URL of your API
+          baseURL: apiPath,
         });
-        const response = await axiosInstanceForApiPath.patch(
+      
+        try {
+          const token = sessionStorage.getItem('token'); // Retrieve token from sessionStorage
 
-          `Integration/cancelticketsinpartnerbooking/${bookingId}`,
-          [passengerName],
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        console.log(response);
-
-        // await ChangeSeatStatus2(apiPath, scheduleId, 'Available', seatNumber3);
-
-        toast.success("Ticket Cancelled Sucessfully");
-
+          // Assuming 'bookingId' and 'passengerName' are defined
+          const response = await axiosInstanceForApiPath.patch(
+            `Integration/cancelticketsinpartnerbooking/${bookingId}`,
+            [passengerName],
+            {
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` 
+              },
+            }
+          );
+      
+          console.log(response);
+      
+          // Display success toast for 2 seconds
+          toast.success('Ticket Cancelled Successfully', {
+            autoClose: 3000,
+          });
+      
+          // Reload the page after 2 seconds
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
+        } catch (error) {
+          console.error(error);
+          toast.error('Error cancelling ticket');
+        }
       }
+      
     } catch (error) {
       console.log(error)
       console.error('Error Ticket Cancelling booking:', error);
@@ -175,7 +183,7 @@ const BookingDetailsModal = ({ isOpen, onClose, bookingId }) => {
                       <TableCell>{ticket.seatNo}</TableCell>
                       <TableCell>{ticket.sourceCity}</TableCell>
                       <TableCell>{ticket.destinationCity}</TableCell>
-                      <TableCell><Button onClick={() => handleCancelTicket(ticket.ticketNo, ticket.name)}>Cancel Ticket</Button></TableCell>
+                      <Button onClick={() => handleCancelTicket(ticket.ticketNo, ticket.name)}>Cancel Ticket</Button>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -209,7 +217,7 @@ const BookingDetailsModal = ({ isOpen, onClose, bookingId }) => {
                       <TableCell>{partnerTicket.destinationAirportId}</TableCell>
                       <TableCell>{partnerTicket.seatNo}</TableCell>
                       <TableCell>{partnerTicket.name}</TableCell>
-                      <TableCell><Button onClick={() => handleCancelTicket(partnerTicket.ticketNo, partnerTicket.name)}>Cancel Ticket</Button></TableCell>
+                      <Button onClick={() => handleCancelTicket(partnerTicket.ticketNo, partnerTicket.name)}>Cancel Ticket</Button>
                     </TableRow>
                   ))}
                 </TableBody>

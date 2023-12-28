@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Card, Button, Form } from 'react-bootstrap';
 import {
   Table,
@@ -11,43 +11,44 @@ import {
   CircularProgress,
   Typography,
 } from '@material-ui/core';
-import axios from 'axios';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { useNavigate } from 'react-router-dom';
-import { parseISO, format,isValid } from 'date-fns';
+import { parseISO, format, isValid } from 'date-fns';
 import Navbar from './Navbar'
+import axiosInstance from './AxiosInstance';
+import { ToastContainer, toast } from 'react-toastify';
 const Booking = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [flightName,setFlightName] = useState('')
+  const [flightName, setFlightName] = useState('')
   const [interChangeSource, setInterChangeSource] = useState('');
   const [interChangeDestination, setInterChangeDestination] = useState('');
-  const [flightDuration,setFlightDuration]=useState('');
-  const [date,setDate]=useState('');
+  const [flightDuration, setFlightDuration] = useState('');
+  const [date, setDate] = useState('');
   const navigate = useNavigate();
   const [flights, setFlights] = useState([]);
   const [loading, setLoading] = useState(false);
-const [book,setBook] = useState('');
-const scheduleId = sessionStorage.getItem('desinationScheduleId');
-const currentDate = new Date();
+  const [book, setBook] = useState('');
+  const scheduleId = sessionStorage.getItem('desinationScheduleId');
+  const currentDate = new Date();
 
-useEffect(() => {
+  useEffect(() => {
 
-  async function fetchData() {
-    await fetchFlightsSchedules();
-  }
+    async function fetchData() {
+      await fetchFlightsSchedules();
+    }
 
-  fetchData();
-}, []);
+    fetchData();
+  }, []);
   const fetchFlightsSchedules = async () => {
     try {
       setLoading(true);
 
 
-      const response = await axios.get(`https://localhost:7285/api/FlightSchedules/${scheduleId}`);
+      const response = await axiosInstance.get(`FlightSchedules/${scheduleId}`);
 
       console.log(scheduleId)
-      
+
 
       console.log(response.data);
       // setScheduleId(response.data.scheduleId);
@@ -57,9 +58,8 @@ useEffect(() => {
       setDate(response.data.dateTime);
       setFlightDuration(response.data.flightDuration)
 
-      setBook(response.data);
-      console.log(book)
-      
+   
+
     } catch (error) {
       console.error('Error fetching flights schedule:', error);
     } finally {
@@ -67,11 +67,11 @@ useEffect(() => {
     }
   };
 
-  
+
 
   const fetchFlightsSchedule = async () => {
     try {
-      
+
 
       const sourceAirportId = await getAirportIdByCityName(interChangeSource);
       const destinationAirportId = await getAirportIdByCityName(interChangeDestination);
@@ -81,26 +81,34 @@ useEffect(() => {
         return;
       }
 
-      console.log('Before parsing:', selectedDate);
+      // console.log('Before parsing:', selectedDate);
 
-      console.log('Before parsing:', selectedDate);
+      // console.log('Before parsing:', selectedDate);
 
-    // Assuming selectedDate is a date string
-    const isoFormattedDate = format(new Date(selectedDate), 'yyyy-MM-dd');
-    const parsedDate = parseISO(isoFormattedDate);
+      // Assuming selectedDate is a date string
+      const isoFormattedDate = format(new Date(selectedDate), 'yyyy-MM-dd');
+      const parsedDate = parseISO(isoFormattedDate);
+      console.log(isoFormattedDate)
 
-    console.log('After parsing:', parsedDate);
+      // console.log('After parsing:', parsedDate);
 
-    // Check if the parsed date is valid
-    if (!isValid(parsedDate)) {
-      throw new Error('Invalid date format');
-    }
+      // Check if the parsed date is valid
+      if (!isValid(parsedDate)) {
+        throw new Error('Invalid date format');
+      }
 
-    const formattedDate = format(parsedDate, 'yyyy-MM-dd');
+      console.log(date)
+      if (isoFormattedDate && isoFormattedDate < date) {
+        // Show an error toast if the selected date is less than the current date
+        toast.error("Check with Date");
+        return;
+      }
+    
 
+      //`https://localhost:7285/api/HomePage?source=${sourceAirportId}&destination=${destinationAirportId}&travelDate=${formattedDate}`
 
-      const response = await axios.get(
-        `https://localhost:7285/api/HomePage?source=${sourceAirportId}&destination=${destinationAirportId}&travelDate=${formattedDate}`
+      const response = await axiosInstance.get(
+        `HomePage?source=${sourceAirportId}&destination=${destinationAirportId}&travelDate=${isoFormattedDate}`
       );
 
       console.log(response.data);
@@ -117,8 +125,8 @@ useEffect(() => {
 
   const getAirportIdByCityName = async (cityName) => {
     try {
-      const airportResponse = await axios.get(
-        `https://localhost:7285/api/Airports/cityName/${cityName}`
+      const airportResponse = await axiosInstance.get(
+        `Airports/cityName/${cityName}`
       );
 
       console.log(airportResponse);
@@ -135,9 +143,7 @@ useEffect(() => {
     }
   };
 
-  const handleDateChange = (e) => {
-    setSelectedDate(e.target.value);
-  };
+
 
   const handleScheduleSelect = async () => {
     try {
@@ -160,54 +166,56 @@ useEffect(() => {
 
   return (
     <Container className="mt-5">
+      <ToastContainer/>
+      <Navbar />
       <Card>
-      {loading ? (
-              <div className="text-center mt-3">
-                <CircularProgress />
-              </div>
-            ) : (
-              <TableContainer component={Paper} className="mt-3">
-          <Card.Title>Select Round Trip Flights</Card.Title>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Flight Name</TableCell>
-                      <TableCell>Source </TableCell>
-                      <TableCell>Destination</TableCell>
-                      <TableCell>Date</TableCell>
-                      <TableCell>Time</TableCell>
-                      <TableCell>Flight Duration</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-    <TableRow >
-      <TableCell>{flightName}</TableCell>
-      <TableCell>{interChangeDestination}</TableCell>
-      <TableCell>{interChangeSource}</TableCell>
-      <TableCell>{new Date(date).toLocaleDateString()}</TableCell>
-      <TableCell>{new Date(date).toLocaleTimeString()}</TableCell>
-      <TableCell>{convertDuration(flightDuration)}</TableCell>
-     
-    </TableRow>
+        {loading ? (
+          <div className="text-center mt-3">
+            <CircularProgress />
+          </div>
+        ) : (
+          <TableContainer component={Paper} className="mt-3">
+            <Card.Title>Select Round Trip Flights</Card.Title>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Flight Name</TableCell>
+                  <TableCell>Source </TableCell>
+                  <TableCell>Destination</TableCell>
+                  <TableCell>Date</TableCell>
+                  <TableCell>Time</TableCell>
+                  <TableCell>Flight Duration</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                <TableRow >
+                  <TableCell>{flightName}</TableCell>
+                  <TableCell>{interChangeDestination}</TableCell>
+                  <TableCell>{interChangeSource}</TableCell>
+                  <TableCell>{new Date(date).toLocaleDateString()}</TableCell>
+                  <TableCell>{new Date(date).toLocaleTimeString()}</TableCell>
+                  <TableCell>{convertDuration(flightDuration)}</TableCell>
 
-  
+                </TableRow>
 
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            )}
+
+
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
         <Card.Body>
           <Card.Title>Select Round Trip Flights</Card.Title>
           <Form>
-          <Form.Group className="mb-3">
-      <Form.Label>Select Return Date</Form.Label>
-      <DatePicker
-        selected={selectedDate}
-        onChange={(date) => setSelectedDate(date)}
-        minDate={currentDate} // Set the minimum date to the current date
-        dateFormat="yyyy-MM-dd"
-      />
-    </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Select Return Date</Form.Label>
+              <DatePicker
+                selected={selectedDate}
+                onChange={(date) => setSelectedDate(date)}
+                minDate={currentDate} // Set the minimum date to the current date
+                dateFormat="yyyy-MM-dd"
+              />
+            </Form.Group>
             <Button variant="primary" onClick={handleScheduleSelect}>
               Select Schedule
             </Button>
