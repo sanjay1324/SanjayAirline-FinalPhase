@@ -16,6 +16,7 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import NavBar from './Navbar'
+import GradientBackground from './GradientBackground';
 const ConfirmationPage = () => {
 
     const navigate = useNavigate();
@@ -200,14 +201,17 @@ const ConfirmationPage = () => {
     }
   };
   return (
-    <div className="confirmation-page">
+    <GradientBackground  >
+    <div>
+      
       <NavBar/>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Confirmation Page
-      </Typography>
+     
 
 
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <Typography variant="h4" component="h1" gutterBottom style={{marginTop:100}}>
+        Confirmation Page
+      </Typography>
         <Paper elevation={3} sx={{ p: 2, mb: 2 }}>
           <Typography variant="h6" component="h2" gutterBottom>
 Source to Connecting          </Typography>
@@ -273,8 +277,9 @@ Source to Connecting          </Typography>
       <Button variant="contained" onClick={handleCancel}>
         Cancel
       </Button>
-
     </div>
+    </GradientBackground>
+
   );
 };
 

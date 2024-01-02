@@ -4,7 +4,8 @@ import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Snackbar, Ta
 import axiosInstance from './AxiosInstance';
 import { ToastContainer, toast } from 'react-toastify';
 import { airlinesapi } from './Constants';
-
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 const BookingDetailsModal = ({ isOpen, onClose, bookingId }) => {
   const [bookingDetails, setBookingDetails] = useState(null);
   const [cancellationMessage, setCancellationMessage] = useState('');
@@ -16,6 +17,40 @@ function getApiPathForAirline(airlineName) {
   const apiPath = airlinesapi[airlineName]?.apiPath || 'default-api-path';
   return apiPath;
 }
+
+const downloadTicketsPDF = () => {
+  if (!bookingDetails || !bookingDetails.tickets) {
+    return;
+  }
+
+  const pdf = new jsPDF();
+  pdf.text('Booking Details', 10, 10);
+
+  // Headers
+  const headers = [['Ticket No', 'Booking Type', 'Name', 'Seat No', 'Source City', 'Destination City','Gender']];
+
+  // Data
+  const data = bookingDetails.tickets.map((ticket) => [
+    ticket.ticketNo,
+    bookingDetails.booking.bookingType,
+    ticket.name,
+    ticket.seatNo,
+    ticket.sourceCity,
+    ticket.destinationCity,
+    ticket.gender,
+  ]);
+
+  // Add table to PDF
+  pdf.autoTable({
+    head: headers,
+    body: data,
+    startY: 20,
+  });
+
+  // Save PDF
+  pdf.save('BookingDetails.pdf');
+};
+
   useEffect(() => {
     const fetchBookingDetails = async () => {
       try {
@@ -231,6 +266,8 @@ function getApiPathForAirline(airlineName) {
           )}
         </DialogContent>
         <DialogActions>
+        <Button onClick={downloadTicketsPDF}>Download Tickets</Button>
+
           <Button variant="contained" color="secondary" onClick={handleCancelBooking}>
             Cancel Booking
           </Button>

@@ -96,7 +96,7 @@ const [airportData,setAirportData]=useState([]);
         async ([firstAirlineName, firstAirline]) => {
           try {
             console.log(firstAirline.apiPath, dateTime);
-            const firstResponse = await axiosInstance.get(
+            const firstResponse = await axios.get(
               `${firstAirline.apiPath}Integration/connectingflight/${source}/${destination}/${dateTime}`
             );
             console.log(firstResponse);
