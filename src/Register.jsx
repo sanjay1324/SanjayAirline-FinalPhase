@@ -18,19 +18,22 @@ import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import backgroundVideo from './css/image/flight.mp4'; // Import your video file here
+import { makeStyles } from '@material-ui/core/styles';
+import axios from 'axios';
 
-function Copyright(props) {
-  return (
-    <Typography variant="body2" color="text.secondary" align="center" {...props}>
-      {'Copyright © '}
-      <Link color="inherit" href="https://mui.com/">
-        Your Website
-      </Link>{' '}
-      {new Date().getFullYear()}
-      {'.'}
-    </Typography>
-  );
-}
+// function Copyright(props) {
+//   return (
+//     <Typography variant="body2" color="text.secondary" align="center" {...props}>
+//       {'Copyright © '}
+//       <Link color="inherit" href="https://mui.com/">
+//         Your Website
+//       </Link>{' '}
+//       {new Date().getFullYear()}
+//       {'.'}
+//     </Typography>
+//   );
+// }
 
 
 
@@ -56,7 +59,8 @@ export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  
+
+
   const isPasswordMatch = password === confirmPassword;
   const isFormValid =
     firstName.trim() !== '' &&
@@ -81,11 +85,11 @@ export default function SignUp() {
       return;
     }
 
-    if(!username){
+    if (!username) {
       alert('Passwords do not match');
       return;
     }
-    if(!email){
+    if (!email) {
       alert('Passwords do not match');
       return;
     }
@@ -96,7 +100,7 @@ export default function SignUp() {
       username: username,
       email: email,
       password: password,
-      role: role,
+      role: "User",
     };
 
     // Send the user registration data to your API for registration
@@ -112,7 +116,24 @@ export default function SignUp() {
         // Handle the response from the API (registration response)
         console.log('Registration response:', data);
         // Redirect or perform other actions as needed
-        navigate('/');
+        console.log(email)
+
+        fetch('https://localhost:7285/api/Email/Successful', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email }),
+        })
+          .then(response => response.json())
+          .then(data => {
+            console.log(data);
+            // navigate('/');
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
+
       })
       .catch((error) => {
         console.error('Error:', error);
@@ -120,176 +141,191 @@ export default function SignUp() {
   };
 
   return (
-    <ThemeProvider theme={defaultTheme}>
-      <Container component="main" maxWidth="xs">
-        <CssBaseline />
-        <Box
-          sx={{
-            marginTop: 8,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-          }}
-        >
-          <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
-            <LockOutlinedIcon />
-          </Avatar>
-          <Typography component="h1" variant="h5">
-            Sign up
-          </Typography>
-          <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  required
-                  fullWidth
-                  id="firstName"
-                  label="First Name"
-                  name="firstName"
-                  autoComplete="given-name"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  error={Boolean(firstNameError)}
-                  helperText={firstNameError}
-                  style={{ color: 'black' }} // Add this line to set the text color to black
+    <div className='login' style={{ position: 'relative', height: '100vh', overflow: 'hidden' }}>
+      <video autoPlay loop muted style={{
+        position: 'absolute',
+        width: '120%',
+        left: '50%',
+        top: '50%',
+        height: '150%',
+        objectFit: 'cover',
+        transform: 'translate(-50%, -50%)',
+        zIndex: '-1'
+      }}>
+        <source src={backgroundVideo} type="video/mp4" />
+      </video>
+      <ThemeProvider theme={defaultTheme}>
+        <Container component="main" maxWidth="xs">
+          <CssBaseline />
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+            }}
+          >
+            <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
+              <LockOutlinedIcon />
+            </Avatar>
+            <Typography component="h1" variant="h5">
+              Sign up
+            </Typography>
+            <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    required
+                    fullWidth
+                    id="firstName"
+                    label="First Name"
+                    name="firstName"
+                    autoComplete="given-name"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    error={Boolean(firstNameError)}
+                    helperText={firstNameError}
+                    style={{ color: 'black' }} // Add this line to set the text color to black
 
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  required
-                  fullWidth
-                  id="lastName"
-                  label="Last Name"
-                  name="lastName"
-                  autoComplete="family-name"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  error={Boolean(lastNameError)}
-                  helperText={lastNameError}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  required
-                  fullWidth
-                  id="username"
-                  label="Username"
-                  name="username"
-                  autoComplete="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  error={Boolean(usernameError)}
-                  helperText={usernameError}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  required
-                  fullWidth
-                  id="email"
-                  label="Email Address"
-                  name="email"
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  error={Boolean(emailError)}
-                  helperText={emailError}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  required
-                  fullWidth
-                  name="password"
-                  label="Password"
-                  type={showPassword ? 'text' : 'password'}
-                  id="password"
-                  autoComplete="new-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  error={Boolean(passwordError)}
-                  helperText={passwordError}
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          onClick={() => setShowPassword(!showPassword)}
-                          edge="end"
-                        >
-                          {showPassword ? <Visibility /> : <VisibilityOff />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  required
-                  fullWidth
-                  name="confirmPassword"
-                  label="Confirm Password"
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  id="confirmPassword"
-                  autoComplete="new-password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  error={Boolean(confirmPasswordError)}
-                  helperText={confirmPasswordError}
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          edge="end"
-                        >
-                          {showConfirmPassword ? <Visibility /> : <VisibilityOff />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-                {!isPasswordMatch && (
-                  <Typography variant="caption" color="error">
-                    Passwords do not match
-                  </Typography>
-                )}
-              </Grid>
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    required
+                    fullWidth
+                    id="lastName"
+                    label="Last Name"
+                    name="lastName"
+                    autoComplete="family-name"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    error={Boolean(lastNameError)}
+                    helperText={lastNameError}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    required
+                    fullWidth
+                    id="username"
+                    label="Username"
+                    name="username"
+                    autoComplete="username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    error={Boolean(usernameError)}
+                    helperText={usernameError}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    required
+                    fullWidth
+                    id="email"
+                    label="Email Address"
+                    name="email"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    error={Boolean(emailError)}
+                    helperText={emailError}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    required
+                    fullWidth
+                    name="password"
+                    label="Password"
+                    type={showPassword ? 'text' : 'password'}
+                    id="password"
+                    autoComplete="new-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    error={Boolean(passwordError)}
+                    helperText={passwordError}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            onClick={() => setShowPassword(!showPassword)}
+                            edge="end"
+                          >
+                            {showPassword ? <Visibility /> : <VisibilityOff />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    required
+                    fullWidth
+                    name="confirmPassword"
+                    label="Confirm Password"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    id="confirmPassword"
+                    autoComplete="new-password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    error={Boolean(confirmPasswordError)}
+                    helperText={confirmPasswordError}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            edge="end"
+                          >
+                            {showConfirmPassword ? <Visibility /> : <VisibilityOff />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                  {!isPasswordMatch && (
+                    <Typography variant="caption" color="error">
+                      Passwords do not match
+                    </Typography>
+                  )}
+                </Grid>
 
-              <Grid item xs={12}>
+                {/* <Grid item xs={12}>
                 <Select
                   fullWidth
                   label="Role"
                   id="role"
-                  value={role}
+                  value={"User"}
                   onChange={(e) => setRole(e.target.value)}
                 >
                   <MenuItem value="User">User</MenuItem>
 
                 </Select>
+              </Grid> */}
               </Grid>
-            </Grid>
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2 }}
-              disabled={!isFormValid}
-            >
-              Sign Up
-            </Button>
-            <Grid container justifyContent="flex-end">
-              <Grid item>
-                <Link to="/" variant="body2" onClick={handleLoginClick}>
-                  Already have an account? Sign in
-                </Link>
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                sx={{ mt: 3, mb: 2 }}
+                disabled={!isFormValid}
+              >
+                Sign Up
+              </Button>
+              <Grid container justifyContent="flex-end">
+                <Grid item>
+                  <Button>
+                    <Link to="/" variant="body2" color='secondary' onClick={handleLoginClick}>
+                      Already have an account? Sign in
+                    </Link>
+                  </Button>
+                </Grid>
               </Grid>
-            </Grid>
+            </Box>
           </Box>
-        </Box>
-        <Copyright sx={{ mt: 5 }} />
-      </Container>
-    </ThemeProvider>
+          {/* <Copyright sx={{ mt: 5 }} /> */}
+        </Container>
+      </ThemeProvider>
+    </div>
   );
 }

@@ -129,6 +129,8 @@ const Booking = () => {
     
     if (isRoundTripSelected) {
 
+      console.log(isRoundTripSelected)
+
       const singleJourneyTickets = passengers.map((passenger) => ({
             bookingId: '',
             scheduleId: sessionStorage.getItem('scheduleId'),
@@ -151,6 +153,7 @@ const Booking = () => {
       Cookies.set('singleFlightTickets', JSON.stringify(singleFlightTickets));
 
     }else{
+      console.log("else")
         const singleJourneyTickets = passengers.map((passenger) => ({
             bookingId: '',
             scheduleId: sessionStorage.getItem('desinationScheduleId'),

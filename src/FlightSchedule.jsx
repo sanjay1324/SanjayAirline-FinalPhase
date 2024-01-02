@@ -166,10 +166,10 @@ const FlightSchedule = () => {
 
     return (
         
-        <Fragment>
-            <Navbar/>
+        <Fragment >
+        <Navbar/>
             <ToastContainer />
-            <Container>
+            <Container style={{margin:70}}>
                 <Grid container spacing={2}>
                     <Grid item xs={3}>
                         <FormControl fullWidth variant="outlined">

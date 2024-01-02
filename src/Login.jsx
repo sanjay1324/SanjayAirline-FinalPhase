@@ -4,6 +4,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import { Button, Box, TextField, Typography, Container, Link, Grid, CircularProgress } from '@mui/material';
 import login from './assets/LoginPicture.gif';
 
+import backgroundVideo from './css/image/flight.mp4'; // Import your video file here
 
 function Login() {
   const [username, setUsername] = useState('');
@@ -68,16 +69,29 @@ function Login() {
   };
 
   return (
-    <div className='login'>
+    <div className='login' style={{ position: 'relative', height: '100vh', overflow: 'hidden' }}>
+      <video autoPlay loop muted style={{
+        position: 'absolute',
+        width: '120%',
+        left: '50%',
+        top: '50%',
+        height: '100%',
+        objectFit: 'cover',
+        transform: 'translate(-50%, -50%)',
+        zIndex: '-1'
+      }}>
+        <source src={backgroundVideo} type="video/mp4" />
+      </video>
+    <div className='login' style={{marginTop:250}}>
       <Container component="main" maxWidth="xs">
         <ToastContainer />
         <Box sx={{ display: 'flex', alignItems: 'center', marginRight: '16px' }}>
-          <img src={login} alt="SanjayAirline Logo" style={{ marginLeft: 55, height: '250px', width: '250px' }} />
+          {/* <img src={login} alt="SanjayAirline Logo" style={{ marginLeft: 55, height: '250px', width: '250px' }} /> */}
         </Box>
         <Typography component="h1" variant="h5">
           Login
         </Typography>
-        <form
+        <form 
           onSubmit={(e) => {
             e.preventDefault();
             handleLogin();
@@ -116,19 +130,22 @@ function Login() {
           </Button>
           <Grid container>
             <Grid item xs>
-              <Link href="/password" variant="body2">
+              <Button><Link href="/password" variant="body3" color='secondary'>
                 Forgot password?
-              </Link>
+              </Link></Button>
             </Grid>
-            <Grid item>
-              <Link href="/register" variant="body2">
-                {"Don't have an account? Sign Up"}
-              </Link>
-            </Grid>
+            
           </Grid>
+
+          <Grid item>
+              <Button><Link href="/register" variant="body3" color='secondary'>
+                {"Don't have an account? Sign Up"}
+              </Link></Button>
+            </Grid>
           {message && <Typography variant="body2" color="error">{message}</Typography>}
         </form>
       </Container>
+    </div>
     </div>
   );
 }

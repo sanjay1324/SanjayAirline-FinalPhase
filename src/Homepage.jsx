@@ -29,7 +29,7 @@ import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import './css/homepage.css'
 
-import sanjaylogo from './css/image/logo-no-background.png';
+// import sanjaylogo from './css/image/logo-no-background.png';
 
 const BookingComponent = () => {
   const [source, setSource] = useState('');
@@ -59,6 +59,12 @@ const [airportData,setAirportData]=useState([]);
       toast.info("You are not authorized user")
       navigate('/login')
     }
+    if (sessionStorage.getItem('LoggedIn') === 'true') {
+      location.reload();
+      sessionStorage.removeItem('LoggedIn');
+      sessionStorage.setItem('loggedIn',true);
+    }
+    
 
     const fetchCities = async () => {
       try {
@@ -90,7 +96,7 @@ const [airportData,setAirportData]=useState([]);
         async ([firstAirlineName, firstAirline]) => {
           try {
             console.log(firstAirline.apiPath, dateTime);
-            const firstResponse = await axios.get(
+            const firstResponse = await axiosInstance.get(
               `${firstAirline.apiPath}Integration/connectingflight/${source}/${destination}/${dateTime}`
             );
             console.log(firstResponse);
@@ -220,6 +226,11 @@ const [airportData,setAirportData]=useState([]);
         setFlightSchedules(response.data);
         // Check if there are connecting flights
         const hasConnectingFlights = response.data.some(schedule => schedule.sourceToConnecting && schedule.connectingToDestination);
+        if(hasConnectingFlights){
+          // sessionStorage.setItem('connnectingflight',true);
+          sessionStorage.setItem('source',source);
+          sessionStorage.setItem('destination',destination);
+        }
         setHasConnectingFlights(hasConnectingFlights);
 
       } catch (response) {
@@ -300,11 +311,11 @@ const [airportData,setAirportData]=useState([]);
 
         navigate('/booking');
       } else if (bookingType === 'RoundTrip') {
+        sessionStorage.setItem('connectingFlightRoundTrip', true)
 
         if (!bookingType) {
           toast.error("Booking Type is not Selected or Empty")
         }
-        sessionStorage.setItem('connectingFlightRoundTrip', true)
         navigate('/round-trip-return-flight');
       }
     }
@@ -436,7 +447,7 @@ const [airportData,setAirportData]=useState([]);
 
 
                         <Typography variant="subtitle1" >
-                          Connecting to Source:                         {`${schedule.connectingToDestination.sourceAirportId} to ${schedule.connectingToDestination.destinationAirportId}`}
+                          Connecting to Source:{`${schedule.connectingToDestination.sourceAirportId} to ${schedule.connectingToDestination.destinationAirportId}`}
 
                         </Typography>
 

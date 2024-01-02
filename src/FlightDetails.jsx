@@ -1,4 +1,8 @@
 import React, { Fragment, useEffect, useState } from 'react';
+import Card from '@material-ui/core/Card';
+import CardContent from '@material-ui/core/CardContent';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Checkbox from '@material-ui/core/Checkbox';
 import {
   Table,
   TableBody,
@@ -21,6 +25,7 @@ import {
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import axiosInstance from './AxiosInstance';
+import Navbar from './Navbar';
 
 const FlightDetails = () => {
   const [data, setData] = useState([]);
@@ -158,16 +163,20 @@ const FlightDetails = () => {
   };
 
   return (
-    <Fragment>
+    
+    <div style={{marginTop:100}}>
+    <Fragment >
       <ToastContainer />
+      <Navbar/>
       <Container>
+
         <Grid container spacing={2}>
           <Grid item xs={3}>
             <TextField
               fullWidth
               type="text"
               variant="outlined"
-              label="AirportName"
+              label="FlightName"
               value={flightName}
               onChange={(e) => setFlightName(e.target.value)}
               disabled={true}
@@ -183,16 +192,20 @@ const FlightDetails = () => {
               onChange={(e) => setFlightCapacity(e.target.value)}
             />
           </Grid>
-          <Grid item xs={3}>
-            <TextField
-              fullWidth
-              variant="outlined"
-              label="isActive"
-              type="checkbox"
-              checked={isActive}
-              onChange={(e) => setIsActive(e.target.checked)}
-            />
-          </Grid>
+          <Card variant="outlined" style={{width:220,height:52,marginTop:15,marginLeft:15}}>
+  <CardContent>
+    <FormControlLabel
+      control={
+        <Checkbox
+          color="primary"
+          checked={isActive}
+          onChange={(e) => setIsActive(e.target.checked)}
+        />
+      }
+      label="isActive"
+    />
+  </CardContent>
+</Card>
           <Grid item xs={3}>
             <Button variant="contained" color="primary" onClick={handleSave}>
               Save Changes
@@ -241,7 +254,7 @@ const FlightDetails = () => {
     ))
   ) : (
     <TableRow>
-      <TableCell colSpan={5}>Loading....</TableCell>
+      <TableCell colSpan={5}>No Data is Available</TableCell>
     </TableRow>
   )}
 </TableBody>
@@ -311,6 +324,7 @@ const FlightDetails = () => {
         </DialogActions>
       </Dialog>
     </Fragment>
+    </div>
   );
 };
 

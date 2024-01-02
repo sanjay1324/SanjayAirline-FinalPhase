@@ -175,7 +175,7 @@ const Booking = () => {
           </div>
         ) : (
           <TableContainer component={Paper} className="mt-3">
-            <Card.Title>Select Round Trip Flights</Card.Title>
+            <Card.Title>Your First Flight</Card.Title>
             <Table>
               <TableHead>
                 <TableRow>

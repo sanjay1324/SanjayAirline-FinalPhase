@@ -143,6 +143,7 @@ const Airports = () => {
   };
 
   return (
+    <div style={{marginTop:100}}> 
     <Fragment>
       <Nav />
       <ToastContainer />
@@ -291,6 +292,7 @@ const Airports = () => {
         </div>
       </Modal>
     </Fragment>
+    </div>
   );
 };
 

@@ -556,7 +556,7 @@ const SeatBooking = () => {
       
       // Your existing code
       const storedEmail = sessionStorage.getItem('Email');
-      const ticketDetails = combinedResponse.data.flightTickets;
+      const ticketDetails = combinedResponse.data.tickets;
       
       console.log(storedEmail);
       console.log(ticketDetails);

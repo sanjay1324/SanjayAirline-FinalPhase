@@ -93,70 +93,72 @@ const Booking = () => {
 
     console.log(passengers.name)
 
+    
     if (ticketCount <= 0) {
       toast.error('No Passenger is Added');
-      return;
-    }
-    const isEmptyField = passengers.some(
-      (passenger) => !passenger.name || !passenger.age || !passenger.gender
-    );
-  
-    if (isEmptyField) {
-      toast.error("All fields for all passengers are required");
-      return;
+    } else {
+      const isEmptyField = passengers.some(
+        (passenger) => !passenger.name || !passenger.age || !passenger.gender
+      );
+    
+      if (isEmptyField) {
+        toast.error("All fields for all passengers are required");
+      } else {
+        if (scheduleId!='null' && destinationScheduleId !='null') {
+          // Connecting flights logic
+          const scheduleIdPassengers = [];
+          const destinationScheduleIdPassengers = [];
+          passengers.forEach((passenger) => {
+            const passengerDetails = {
+              name: passenger.name,
+              age: passenger.age,
+              gender: passenger.gender,
+              seatNo: null,
+            };
+    
+            // Store passenger details separately for scheduleId and destinationScheduleId
+            if(secondAirlineName!==null){
+              console.log(true)
+              scheduleIdPassengers.push({ ...passengerDetails, scheduleId,ticketStatus:"Booked"});
+              destinationScheduleIdPassengers.push({ ...passengerDetails, airlineName:secondAirlineName,flightName:flightName,sourceAirportId:source,destinationAirportId:destination,dateTime:dateTime });
+            }else{
+              scheduleIdPassengers.push({ ...passengerDetails, scheduleId});
+    
+              destinationScheduleIdPassengers.push({ ...passengerDetails, "scheduleId":destinationScheduleId});
+              console.log(false)
+            }
+          });
+    
+          Cookies.set('scheduleIdPassengers', JSON.stringify(scheduleIdPassengers));
+          Cookies.set('destinationScheduleIdPassengers', JSON.stringify(destinationScheduleIdPassengers));
+    
+    
+          navigate('/connecting-flight-seat', { state: { bookingType } }); 
+        } else {
+          // Single flight logic
+          const flightTickets = passengers.map((passenger) => ({
+            bookingId: '',
+            scheduleId:destinationScheduleId,
+            name: passenger.name,
+            age: passenger.age,
+            gender: passenger.gender,
+            seatNo: null,
+          }));
+    
+          Cookies.set('flightTickets', JSON.stringify(flightTickets));
+          // Additional actions for single flights
+    
+          sessionStorage.setItem('bookingType', bookingType);
+          sessionStorage.setItem('ticketCount', ticketCount);
+    
+          navigate('/seats', { state: { bookingType } });
+        }
+      }
     }
 
     // console.log(scheduleId!=null && destinationScheduleId !=null)
     // Check if both scheduleId and destinationScheduleId are present
-     if (scheduleId!='null' && destinationScheduleId !='null') {
-      // Connecting flights logic
-      const scheduleIdPassengers = [];
-      const destinationScheduleIdPassengers = [];
-      passengers.forEach((passenger) => {
-        const passengerDetails = {
-          name: passenger.name,
-          age: passenger.age,
-          gender: passenger.gender,
-          seatNo: null,
-        };
-
-        // Store passenger details separately for scheduleId and destinationScheduleId
-        if(secondAirlineName!==null){
-          console.log(true)
-          scheduleIdPassengers.push({ ...passengerDetails, scheduleId,ticketStatus:"Booked"});
-          destinationScheduleIdPassengers.push({ ...passengerDetails, airlineName:secondAirlineName,flightName:flightName,sourceAirportId:source,destinationAirportId:destination,dateTime:dateTime });
-        }else{
-          scheduleIdPassengers.push({ ...passengerDetails, scheduleId});
-
-          destinationScheduleIdPassengers.push({ ...passengerDetails, "scheduleId":destinationScheduleId});
-          console.log(false)
-        }
-      });
-
-      Cookies.set('scheduleIdPassengers', JSON.stringify(scheduleIdPassengers));
-      Cookies.set('destinationScheduleIdPassengers', JSON.stringify(destinationScheduleIdPassengers));
-
-
-      navigate('/connecting-flight-seat', { state: { bookingType } }); 
-    } else {
-      // Single flight logic
-      const flightTickets = passengers.map((passenger) => ({
-        bookingId: '',
-        scheduleId:destinationScheduleId,
-        name: passenger.name,
-        age: passenger.age,
-        gender: passenger.gender,
-        seatNo: null,
-      }));
-
-      Cookies.set('flightTickets', JSON.stringify(flightTickets));
-      // Additional actions for single flights
-
-      sessionStorage.setItem('bookingType', bookingType);
-      sessionStorage.setItem('ticketCount', ticketCount);
-
-      navigate('/seats', { state: { bookingType } });
-    }
+    
   };
   const cardColor = ticketCount >= MAX_TICKETS ? 'red' : 'green';
 
@@ -182,7 +184,7 @@ const Booking = () => {
       </CardContent>
     </Card>
 
-    <form onSubmit={handleSubmit} style={{ maxWidth: '600px', margin: 'auto' }}>
+    <form  style={{ maxWidth: '600px', margin: 'auto' }}>
   <Card style={{ padding: '20px', marginBottom: '20px' }}>
     <Typography variant="h6">Passenger Details</Typography>
     {passengers.map((passenger, index) => (
@@ -242,7 +244,7 @@ const Booking = () => {
     </Button>
   </Card>
 
-  <Button type="submit" variant="contained" color="primary" style={{ width: '100%' }}>
+  <Button type="submit" variant="contained" color="primary" style={{ width: '100%' }} onClick={handleSubmit}>
     Continue to Seat Booking
   </Button>
 </form>

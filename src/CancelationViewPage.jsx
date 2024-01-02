@@ -11,7 +11,7 @@ const BookingDetailsModal = ({ isOpen, onClose, bookingId }) => {
   const [isSnackbarOpen, setSnackbarOpen] = useState(false);
   const [isConfirmationOpen, setConfirmationOpen] = useState(false);
   const [secondApiPath,setSecondApiPath] = useState('');
-
+  const [apiPath,setApiPath]=useState('');
 function getApiPathForAirline(airlineName) {
   const apiPath = airlinesapi[airlineName]?.apiPath || 'default-api-path';
   return apiPath;
@@ -29,6 +29,7 @@ function getApiPathForAirline(airlineName) {
         setSecondApiPath(storedAirlineName);
 // Use your constants file to get the corresponding apiPath
         const apiPath = getApiPathForAirline(storedAirlineName);
+        setApiPath(apiPath)
         console.log(apiPath)
 
         // Fetch additional details for each ticket
@@ -73,6 +74,7 @@ function getApiPathForAirline(airlineName) {
 
   const handleConfirmCancel = async () => {
     try {
+      console.log("other airline")
       //patch(`https://localhost:7285/api/Bookings/CancelBooking/${bookingId}`)
       const response = await axiosInstance.patch(`Bookings/CancelBooking/${bookingId}`);
       // Handle cancellation response as needed
@@ -104,14 +106,15 @@ function getApiPathForAirline(airlineName) {
 
       const response = await axiosInstance.patch(`Bookings/CancelTicket/${bookingId}/${ticketNo}/${bookingType}/${passengerName}`)
       console.log(response.data);
-      const Check = response.data
+      const Check = sessionStorage.getItem('airlineName');
       console.log(Check)
 
       console.log(passengerName)
-      if (Check === 'Ticket cancelled successfully.') {
-        const apiPath = secondApiPath;
+      if (Check != 'undefined') {
+        const apiPath2 = apiPath;
+        console.log(apiPath2)
         const axiosInstanceForApiPath = axios.create({
-          baseURL: apiPath,
+          baseURL: apiPath2,
         });
       
         try {
@@ -144,6 +147,8 @@ function getApiPathForAirline(airlineName) {
           console.error(error);
           toast.error('Error cancelling ticket');
         }
+      }else{
+        toast.success("Cancel successfully")
       }
       
     } catch (error) {

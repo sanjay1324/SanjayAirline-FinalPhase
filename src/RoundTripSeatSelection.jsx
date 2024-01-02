@@ -427,9 +427,33 @@ const SeatBooking = () => {
 
   const [isPassengerDetailsModalOpen, setPassengerDetailsModalOpen] = useState(false);
   const [selectedPassengerDetails, setSelectedPassengerDetails] = useState([]);
+  const [sourceCity, setSourceCity] = useState('');
+  const [destinationCity, setDestinationCity] = useState('');
 
+  const scheduleIds = ['scheduleId1', 'scheduleId2', 'scheduleId3', 'scheduleId4'];
+  useEffect(() => {
+    // Fetch details for each scheduleId
+    scheduleIds.forEach(async (scheduleId) => {
+      try {
+        const response = await axiosInstance.get(`FlightSchedule/${sessionStorage.getItem(scheduleId)}`);
+        const { sourceAirportId, destinationAirportId } = response.data;
 
+        // Fetch source city details
+        const sourceCityResponse = await axiosInstance.get(`Airports/${sourceAirportId}`);
+        const sourceCityName = sourceCityResponse.data.cityName;
 
+        // Fetch destination city details
+        const destinationCityResponse = await axiosInstance.get(`Airports/${destinationAirportId}`);
+        const destinationCityName = destinationCityResponse.data.cityName;
+
+        // Update state with city names
+        setSourceCity((prevCities) => ({ ...prevCities, [scheduleId]: sourceCityName }));
+        setDestinationCity((prevCities) => ({ ...prevCities, [scheduleId]: destinationCityName }));
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    });
+  }, []);
   useEffect(() => {
     const booked = sessionStorage.getItem('isBooked');
 

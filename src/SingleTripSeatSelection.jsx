@@ -275,7 +275,7 @@ const SeatBooking = () => {
       setLoading(true);
 
       const existingFlightTickets = JSON.parse(Cookies.get('flightTickets') || '[]');
-
+     
       const combinedData = {
         booking: {
           bookingType: "Oneway",
