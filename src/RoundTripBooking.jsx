@@ -68,15 +68,15 @@ const Booking = () => {
   
       if (field === 'name') {
         // Validate the name as a string
-        if (/^[a-zA-Z]*$/.test(value)) {
+        if (/^[a-zA-Z\s]*$/.test(value)) {
           updatedPassengers[index] = { ...updatedPassengers[index], [field]: value };
-        } else {
+        }else {
           // Optionally, handle invalid name input (e.g., show an error message).
         }
       } else if (field === 'age') {
         // Validate the age as a number not exceeding 200
         const ageValue = parseInt(value, 10); // Parse the value as an integer
-        if (!isNaN(ageValue) && ageValue >= 0 && ageValue <= 200) {
+        if (!isNaN(ageValue) && ageValue >= 0 && ageValue <= 150) {
           updatedPassengers[index] = { ...updatedPassengers[index], [field]: ageValue };
         } else {
           // Optionally, handle invalid age input (e.g., show an error message).
@@ -90,13 +90,13 @@ const Booking = () => {
   };
 
   const handleReturnPassengerChanges = (index, field, value) => {
-    setPassengers((prevPassengers) => {
-      const updatedPassengers = [...prevPassengers];
+    setPassengers((prevReturnPassengers) => {
+      const updatedReturnPassengers = [...prevReturnPassengers];
   
       if (field === 'name') {
         // Validate the name as a string
         if (/^[a-zA-Z]*$/.test(value)) {
-          updatedPassengers[index] = { ...updatedPassengers[index], [field]: value };
+          updatedReturnPassengers[index] = { ...updatedReturnPassengers[index], [field]: value };
         } else {
           // Optionally, handle invalid name input (e.g., show an error message).
         }
@@ -104,15 +104,15 @@ const Booking = () => {
         // Validate the age as a number not exceeding 200
         const ageValue = parseInt(value, 10); // Parse the value as an integer
         if (!isNaN(ageValue) && ageValue >= 0 && ageValue <= 200) {
-          updatedPassengers[index] = { ...updatedPassengers[index], [field]: ageValue };
+          updatedReturnPassengers[index] = { ...updatedReturnPassengers[index], [field]: ageValue };
         } else {
           // Optionally, handle invalid age input (e.g., show an error message).
         }
       } else if (field === 'gender') {
-        updatedPassengers[index][field] = value;
+        updatedReturnPassengers[index][field] = value;
       }
   
-      return updatedPassengers;
+      return updatedReturnPassengers;
     });
   };
 

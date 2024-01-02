@@ -104,7 +104,7 @@ export default function SignUp() {
     };
 
     // Send the user registration data to your API for registration
-    fetch('https://localhost:7285/api/LoginAndRegisterAuthentication/Registration', {
+    fetch('http://192.168.10.54:88/api/LoginAndRegisterAuthentication/Registration', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -118,7 +118,7 @@ export default function SignUp() {
         // Redirect or perform other actions as needed
         console.log(email)
 
-        fetch('https://localhost:7285/api/Email/Successful', {
+        fetch('http://192.168.10.54:88/api/Email/Successful', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -128,7 +128,7 @@ export default function SignUp() {
           .then(response => response.json())
           .then(data => {
             console.log(data);
-            // navigate('/');
+            navigate('/');
           })
           .catch(error => {
             console.error('Error:', error);

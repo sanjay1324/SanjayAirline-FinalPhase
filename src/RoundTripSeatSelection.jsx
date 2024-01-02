@@ -706,6 +706,72 @@ const SeatBooking = () => {
 
     sessionStorage.setItem('bookingId', combinedResponse.data.booking.bookingId);
 
+    const fetchAdditionalDetails = async (scheduleId) => {
+      try {
+        const response = await axiosInstance.get(`FlightSchedules/${scheduleId}`);
+        const scheduleDetails = response.data;
+    
+        // Assuming the API response has properties like sourceAirportId, destinationAirportId, and dateTime
+        return {
+          sourceAirportId: scheduleDetails.sourceAirportId,
+          destinationAirportId: scheduleDetails.destinationAirportId,
+          dateTime: scheduleDetails.dateTime,
+        };
+      } catch (error) {
+        console.error('Error fetching additional details:', error);
+        throw error; // You might want to handle this error according to your application's requirements
+      }
+    };
+    
+    // Your existing code
+    const storedEmail = sessionStorage.getItem('Email');
+    const ticketDetails = combinedResponse.data.ticket;
+    
+    console.log(storedEmail);
+    console.log(ticketDetails);
+    
+    if (storedEmail && ticketDetails && ticketDetails.length > 0) {
+      // Fetch additional details for each ticket
+      const fetchDetailsPromises = ticketDetails.map(async (ticket) => {
+        try {
+          const additionalDetails = await fetchAdditionalDetails(ticket.scheduleId);
+          return {
+            seat: ticket.seatNo,
+            passengerName: ticket.name,
+            age: ticket.age,
+            sourceAirport: additionalDetails.sourceAirportId,
+            destinationAirport: additionalDetails.destinationAirportId,
+            flightDate: additionalDetails.dateTime,
+            flightTime: additionalDetails.dateTime.split('T')[1],
+          };
+        } catch (error) {
+          // Handle the error or log it based on your application's requirements
+          console.error('Error processing ticket details:', error);
+          return null; // Or handle it in a way that fits your needs
+        }
+      });
+    
+      // Wait for all details to be fetched
+      const ticketsData = await Promise.all(fetchDetailsPromises);
+    
+      // Filter out any null values (tickets where additional details couldn't be fetched)
+      const validTicketsData = ticketsData.filter((data) => data !== null);
+    
+      const emailData = {
+        email: storedEmail,
+        tickets: validTicketsData,
+      };
+    
+      try {
+        const response = await axiosInstance.post('Email/send', emailData);
+        console.log(response.data); // Log the response from the server
+    
+        // You can handle success or further actions here
+      } catch (error) {
+        console.error('Error sending email:', error);
+      }
+    }
+
     setTimeout(() => {
               navigate('/ticket');
             }, 3000);
@@ -857,77 +923,100 @@ const SeatBooking = () => {
       };
   return (
     <>
-      <Container className="mt-5">
-        <Navbar />
-        <Grid container>
-          <Grid item xs={12}>
-            <Typography variant="h2">Select Your Seats - Ongoing</Typography>
-            <>
-              <Card sx={{ p: 3 }}>
-                {renderSeats(
-                  ongoingSeatsData,
-                  isEditing ? editedOngoingSeats : selectedOngoingSeats,
-                  handleSeatClick,
-                  isEditing,
-                  false
-                )}
-              </Card>
-            </>
-            <Paper sx={{ p: 3 }}>
-              <Typography variant="div" className="mt-3">
-                <strong>Selected Seats:</strong> {selectedOngoingSeats.join(', ')}
-              </Typography>
-              <Button onClick={() => handleConfirm('singleJourneyTickets')}>Select Seats</Button>
-            </Paper>
-          </Grid>
-          {showSecondJourney && (
-            <Grid item xs={12} className="mt-5">
-              <Typography variant="h2">Select Your Seats - Return</Typography>
-              <Card sx={{ p: 3 }}>
-                {renderSeats(
-                  returnSeatsData,
-                  selectedReturnSeats,
-                  handleSeatClick,
-                  false,
-                  true
-                )}
-              </Card>
-              <Typography variant="div" className="mt-3">
-                <strong>Selected Seats:</strong> {selectedReturnSeats.join(', ')}
-              </Typography>
-              <Button onClick={() => handleConfirm('returnJourneyTickets')}>Select Seats</Button>
-            </Grid>
+   <Container className="mt-5">
+  <Navbar />
+  <Grid container>
+    <Grid item xs={12}>
+      <Typography variant="h2">Select Your Seats - Ongoing</Typography>
+      <>
+        <Card sx={{ p: 3 }}>
+          {renderSeats(
+            ongoingSeatsData,
+            isEditing ? editedOngoingSeats : selectedOngoingSeats,
+            handleSeatClick,
+            isEditing,
+            false
           )}
-        </Grid>
-        <Button onClick={() => handleViewPassengerDetails([...selectedOngoingSeats, ...selectedReturnSeats], false)}>
-  View Passenger Details
-</Button>
+        </Card>
+      </>
+      <Paper sx={{ p: 3 }}>
+        <Typography variant="div" className="mt-3">
+          <strong>Selected Seats:</strong> {selectedOngoingSeats.join(', ')}
+        </Typography>
+        {selectedOngoingSeats.length > 0 && (
+          <Button onClick={() => handleConfirm('singleJourneyTickets')}>
+            Select Seats
+          </Button>
+        )}
+      </Paper>
+    </Grid>
+    {showSecondJourney && (
+      <Grid item xs={12} className="mt-5">
+        <Typography variant="h2">Select Your Seats - Return</Typography>
+        <Card sx={{ p: 3 }}>
+          {renderSeats(
+            returnSeatsData,
+            selectedReturnSeats,
+            handleSeatClick,
+            false,
+            true
+          )}
+        </Card>
+        <Typography variant="div" className="mt-3">
+          <strong>Selected Seats:</strong> {selectedReturnSeats.join(', ')}
+        </Typography>
+        {selectedReturnSeats.length > 0 && (
+          <Button onClick={() => handleConfirm('returnJourneyTickets')}>
+            Select Seats
+          </Button>
+        )}
+      </Grid>
+    )}
+  </Grid>
+  {selectedOngoingSeats.length > 0 && selectedReturnSeats.length > 0 && (
+    <Button
+      style={{ backgroundColor: 'green', color: 'white' }}
+      onClick={() =>
+        handleViewPassengerDetails(
+          [...selectedOngoingSeats, ...selectedReturnSeats],
+          false
+        )
+      }
+    >
+      View Passenger Details
+    </Button>
+  )}
+  {/* Add the passenger details modal */}
+  <Dialog
+    open={isPassengerDetailsModalOpen}
+    onClose={() => setPassengerDetailsModalOpen(false)}
+  >
+    <DialogTitle>Passenger Details</DialogTitle>
+    <DialogContent>
+      {selectedPassengerDetails.map((passenger, index) => (
+        <Box key={index}>
+          <Typography variant="body1">
+            <strong>Seat Number:</strong> {passenger.seatNo}
+          </Typography>
+          <Typography variant="body1">
+            <strong>Name:</strong> {passenger.name}
+          </Typography>
+          {/* Add more details as needed */}
+          {index < selectedPassengerDetails.length - 1 && <hr />}{' '}
+          {/* Add a horizontal line between passengers */}
+        </Box>
+      ))}
+    </DialogContent>
+    <DialogActions>
+      <Button onClick={() => handleFinalConfirm()}>Confirm</Button>
+      <Button onClick={() => setPassengerDetailsModalOpen(false)}>
+        Close
+      </Button>
+    </DialogActions>
+  </Dialog>
+</Container>
 
 
-
-      {/* Add the passenger details modal */}
-      <Dialog open={isPassengerDetailsModalOpen} onClose={() => setPassengerDetailsModalOpen(false)}>
-        <DialogTitle>Passenger Details</DialogTitle>
-        <DialogContent>
-          {selectedPassengerDetails.map((passenger, index) => (
-            <Box key={index}>
-              <Typography variant="body1">
-                <strong>Seat Number:</strong> {passenger.seatNo}
-              </Typography>
-              <Typography variant="body1">
-                <strong>Name:</strong> {passenger.name}
-              </Typography>
-              {/* Add more details as needed */}
-              {index < selectedPassengerDetails.length - 1 && <hr />} {/* Add a horizontal line between passengers */}
-            </Box>
-          ))}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => handleFinalConfirm()}>Confirm</Button>
-          <Button onClick={() => setPassengerDetailsModalOpen(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
-      </Container>
     </>
   );
 };

@@ -18,6 +18,7 @@ import RoundTripReturnFlight from './BookingRound';
 import CancelBookingPage from './CancellationPage';
 import GenerateTicket from './GenerateTicket';
 import Confrim from './Confirm';
+import BookingCard from'./AdminHistory';
 function App() {
   return (
     <Router>
@@ -42,6 +43,7 @@ function App() {
         <Route path='/Cancel' element={<CancelBookingPage/>}/>
         <Route path='/ticket' element={<GenerateTicket/>}/>
         <Route path='/confirm' element={<Confrim/>}/>
+        <Route path='/admin-history' element={<BookingCard/>}/>
         </Routes>
       </div>
     

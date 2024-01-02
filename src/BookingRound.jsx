@@ -98,11 +98,15 @@ const Booking = () => {
       }
 
       console.log(date)
-      if (isoFormattedDate && isoFormattedDate < date) {
-        // Show an error toast if the selected date is less than the current date
+      const selectedTimestamp = new Date(isoFormattedDate).getTime();
+      const currentTimestamp = new Date(date).getTime();
+      
+      if (selectedTimestamp <= currentTimestamp) {
+        // Show an error toast if the selected date is less than or equal to the current date
         toast.error("Check with Date");
         return;
       }
+      
     
 
       //`https://localhost:7285/api/HomePage?source=${sourceAirportId}&destination=${destinationAirportId}&travelDate=${formattedDate}`

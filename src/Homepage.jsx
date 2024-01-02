@@ -55,10 +55,10 @@ const [airportData,setAirportData]=useState([]);
   useEffect(() => {
     // Fetch the list of cities from the 
 
-    if (LoggedIn === 'false') {
-      toast.info("You are not authorized user")
-      navigate('/login')
-    }
+    // if (LoggedIn === 'false') {
+    //   toast.info("You are not authorized user")
+    //   navigate('/login')
+    // }
     if (sessionStorage.getItem('LoggedIn') === 'true') {
       location.reload();
       sessionStorage.removeItem('LoggedIn');
@@ -204,6 +204,11 @@ const [airportData,setAirportData]=useState([]);
 
   const handleBooking = async () => {
     setLoading(true);
+    const continueBooking = sessionStorage.getItem('continueBooking')
+    // if(continueBooking!=='true'){
+    //   navigate('/')
+
+    // }
     console.log(selectedDate)
 
     if (!source) {
@@ -287,6 +292,10 @@ const [airportData,setAirportData]=useState([]);
       toast.error('Booking Type is not Selected or Empty');
     } else {
       if (bookingType === 'SingleTrip') {
+        if(continueBooking!=='true'){
+      navigate('/')
+
+    }
         navigate('/booking');
       } else if (bookingType === 'RoundTrip') {
         if (!bookingType) {

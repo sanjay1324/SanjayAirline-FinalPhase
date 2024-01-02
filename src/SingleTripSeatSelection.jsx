@@ -478,11 +478,11 @@ if (storedEmail && ticketDetails && ticketDetails.length > 0) {
     </Card>
               <Typography variant="h2">Select Your Seats</Typography>
             </div>
-            <Card sx={{ p: 3, width: '50%', height: '70%', overflow: 'hidden', marginLeft:30, marginRight:80,position: 'relative' }}>
+            <div sx={{ p: 3, width: '50%', height: '70%', overflow: 'hidden', marginLeft:30, marginRight:80,position: 'relative' }}>
               <div className="flight-container">
               {renderSeats()}
               </div>
-            </Card>
+            </div>
             <Button variant="contained" color="primary" onClick={handleConfirm}>
               Confirm Booking
             </Button>

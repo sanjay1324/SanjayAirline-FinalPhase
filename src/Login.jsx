@@ -33,7 +33,7 @@ function Login() {
     try {
       setLoading(true); // Set loading to true when starting the request
 
-      const response = await fetch('https://localhost:7285/api/LoginAndRegisterAuthentication/Login', {
+      const response = await fetch('http://192.168.10.54:88/api/LoginAndRegisterAuthentication/Login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -132,6 +132,12 @@ function Login() {
             <Grid item xs>
               <Button><Link href="/password" variant="body3" color='secondary'>
                 Forgot password?
+              </Link></Button>
+            </Grid>
+
+            <Grid item xs>
+              <Button><Link href="/password" variant="body3" color='secondary'>
+                
               </Link></Button>
             </Grid>
             

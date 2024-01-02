@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { AppBar, Toolbar, Typography, Button, Box, IconButton, Drawer, List, ListItem, ListItemText } from '@mui/material';
 import { Menu as MenuIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import logo from '../src/assets/Logo.png';
 import Cookies from 'js-cookie';
+import logo from '../src/assets/Logo.png';
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -69,6 +69,12 @@ const Navbar = () => {
     // You can add more actions for admin as needed
   };
 
+  const handlePartnerHistory = () => {
+    // Implement your history logic here
+    // For example, navigate to the history page
+    navigate('/admin-history');
+  };
+
   const renderUserRoleSpecificActions = () => {
     if (userRole === 'Admin') {
       return (
@@ -80,6 +86,10 @@ const Navbar = () => {
             Flight Details
           </Button>
           <Button color="inherit" onClick={handleAboutUs}>
+            Flight Schedule
+          </Button>
+
+          <Button color="inherit" onClick={handlePartnerHistory}>
             Flight Schedule
           </Button>
         </>
@@ -134,10 +144,16 @@ const Navbar = () => {
           {/* User-specific actions */}
           {!isMobileView && renderUserRoleSpecificActions()}
 
-          {/* Logout Button */}
-          <Button color="inherit" onClick={handleLogout}>
-            Logout
-          </Button>
+          {/* Logout or Login Button */}
+          {userRole ? (
+            <Button color="inherit" onClick={handleLogout}>
+              Logout
+            </Button>
+          ) : (
+            <Button color="inherit" onClick={() => navigate('/')}>
+              Login
+            </Button>
+          )}
         </Toolbar>
       </AppBar>
 
@@ -152,9 +168,9 @@ const Navbar = () => {
           <List sx={{ width: 250 }}>
             {renderUserRoleSpecificActions()}
 
-            {/* Logout Button in Drawer */}
+            {/* Logout or Login Button in Drawer */}
             <ListItem button key="Logout" onClick={handleLogout}>
-              <ListItemText primary="Logout" />
+              <ListItemText primary={userRole ? "Logout" : "Login"} />
             </ListItem>
           </List>
         </Drawer>
