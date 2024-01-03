@@ -13,6 +13,14 @@ function Login() {
   const [loading, setLoading] = useState(false); // New state for loading
   const navigate = useNavigate();
   sessionStorage.setItem('LoggedIn',false)
+  // sessionStorage.setItem('continuewithoutlogin',false)
+
+  
+
+  const handleContinueWithoutLogin = () =>{
+    sessionStorage.setItem('continuewithoutlogin',true)
+    navigate('/homepage');
+  }
 
   const decodeToken = (encodedToken) => {
     // Decode the token when needed
@@ -33,7 +41,7 @@ function Login() {
     try {
       setLoading(true); // Set loading to true when starting the request
 
-      const response = await fetch('http://192.168.10.54:88/api/LoginAndRegisterAuthentication/Login', {
+      const response = await fetch('https://localhost:7285/api/LoginAndRegisterAuthentication/Login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -85,10 +93,10 @@ function Login() {
     <div className='login' style={{marginTop:250}}>
       <Container component="main" maxWidth="xs">
         <ToastContainer />
-        <Box sx={{ display: 'flex', alignItems: 'center', marginRight: '16px' }}>
-          {/* <img src={login} alt="SanjayAirline Logo" style={{ marginLeft: 55, height: '250px', width: '250px' }} /> */}
-        </Box>
-        <Typography component="h1" variant="h5">
+        {/* <Box sx={{ display: 'flex', alignItems: 'center', marginRight: '16px' }}>
+          <img src={login} alt="SanjayAirline Logo" style={{ marginLeft: 55, height: '250px', width: '250px' }} />
+        </Box> */}
+        <Typography component="h1" variant="h5" style={{ color: 'black', fontWeight: 'bold' }}>
           Login
         </Typography>
         <form 
@@ -98,17 +106,18 @@ function Login() {
           }}
         >
           <TextField
-            variant="outlined"
-            margin="normal"
-            fullWidth
-            id="username"
-            label="Username"
-            name="username"
-            autoComplete="username"
-            autoFocus
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
+  variant="outlined"
+  margin="normal"
+  fullWidth
+  id="username"
+  label="Username"
+  name="username"
+  autoComplete="username"
+  autoFocus
+  value={username}
+  onChange={(e) => setUsername(e.target.value)}
+  style={{ color: 'black', fontWeight: 'bold' }}
+/>
           <TextField
             variant="outlined"
             margin="normal"
@@ -129,22 +138,26 @@ function Login() {
             )}
           </Button>
           <Grid container>
-            <Grid item xs>
-              <Button><Link href="/password" variant="body3" color='secondary'>
-                Forgot password?
-              </Link></Button>
-            </Grid>
+          <Grid item xs>
+  <Button>
+    <Link href="/password" variant="body3" style={{ fontWeight: 'bold', color: 'black', textDecoration: 'none' }}>
+      Forgot password?
+    </Link>
+  </Button>
+</Grid>
+
+
 
             <Grid item xs>
-              <Button><Link href="/password" variant="body3" color='secondary'>
-                
-              </Link></Button>
+              <Button onClick={handleContinueWithoutLogin} variant="body3" color='secondary'>
+                Continue Without Login
+              </Button>
             </Grid>
             
           </Grid>
 
           <Grid item>
-              <Button><Link href="/register" variant="body3" color='secondary'>
+              <Button><Link href="/register" variant="body3" color='secondary' style={{ fontWeight: 'bold', color: 'black', textDecoration: 'none' }}>
                 {"Don't have an account? Sign Up"}
               </Link></Button>
             </Grid>

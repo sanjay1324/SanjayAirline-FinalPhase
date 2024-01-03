@@ -23,9 +23,16 @@ const SeatBooking = () => {
   const scheduleId = sessionStorage.getItem('desinationScheduleId');
   const seatNumbers = selectedSeats;
 
+  const [confirmationSuccessful, setConfirmationSuccessful] = useState(false);
 
   useEffect(() => {
     const booked = sessionStorage.getItem('isBooked');
+
+    if (sessionStorage.getItem('loggedIn') === 'true') {
+      location.reload();
+      sessionStorage.removeItem('loggedIn');
+      sessionStorage.setItem('LoggedIn', true);
+    }
 
     if (booked === 'true') {
       // Clear the 'isBooked' flag to allow access on the next visit
@@ -273,6 +280,7 @@ const SeatBooking = () => {
   const handleConfirmation = async () => {
     try {
       setLoading(true);
+      setConfirmationSuccessful(true);
 
       const existingFlightTickets = JSON.parse(Cookies.get('flightTickets') || '[]');
      
@@ -359,6 +367,10 @@ if (storedEmail && ticketDetails && ticketDetails.length > 0) {
     const response = await axiosInstance.post('Email/send', emailData);
     console.log(response.data); // Log the response from the server
 
+      // Your confirmation logic here
+    
+      // Assuming the confirmation is successful
+    
     // You can handle success or further actions here
   } catch (error) {
     console.log(error)
@@ -403,6 +415,7 @@ if (storedEmail && ticketDetails && ticketDetails.length > 0) {
   const renderSeats = () => {
     const seatButtons = [];
     const seatsPerRow = 3;
+    const armchairSize = 18; // Adjust the size as needed
   
     for (let i = 0; i < seatsData.length; i += seatsPerRow) {
       const rowSeats = seatsData.slice(i, i + seatsPerRow);
@@ -447,7 +460,7 @@ if (storedEmail && ticketDetails && ticketDetails.length > 0) {
                     ? '#ffffff' // White for grey seats
                     : '#495057' // Dark grey for others
                 }
-                size={24}
+                size={armchairSize} // Set the reduced size here
                 className={seat.status === 'Booked' ? 'disabled-armchair' : ''}
               />
               <span className="sr-only">{` ${seat.seatNumber}`}</span>
@@ -458,7 +471,8 @@ if (storedEmail && ticketDetails && ticketDetails.length > 0) {
     }
   
     return seatButtons;
-  }
+  };
+  
 
   return (
     <>
@@ -478,12 +492,12 @@ if (storedEmail && ticketDetails && ticketDetails.length > 0) {
     </Card>
               <Typography variant="h2">Select Your Seats</Typography>
             </div>
-            <div sx={{ p: 3, width: '50%', height: '70%', overflow: 'hidden', marginLeft:30, marginRight:80,position: 'relative' }}>
+            <div sx={{ p: 3, width: '50%', height: '50%', overflow: 'hidden', marginLeft:30, marginRight:80,position: 'relative' }}>
               <div className="flight-container">
               {renderSeats()}
               </div>
             </div>
-            <Button variant="contained" color="primary" onClick={handleConfirm}>
+            <Button variant="contained" color="primary" onClick={handleConfirm} style={{margin:30}}>
               Confirm Booking
             </Button>
           </Grid>
@@ -511,16 +525,16 @@ if (storedEmail && ticketDetails && ticketDetails.length > 0) {
           </DialogContent>
           <DialogActions>
 
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleConfirmation}
-
-              className="mt-3"
-              style={{ marginTop: 1230 }}
-            >
-              Confirm Booking
-            </Button>
+          <Button
+  variant="contained"
+  color="primary"
+  onClick={handleConfirmation}
+  className="mt-3"
+  style={{ marginTop: 1230 }}
+  disabled={confirmationSuccessful} // Add this line
+>
+  Confirm Booking
+</Button>
             <Button onClick={handleCloseModal} color="primary">
               Close
             </Button>

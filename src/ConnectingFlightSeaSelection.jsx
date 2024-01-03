@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Grid, Button, Card, Typography, Paper,CardContent } from '@mui/material';
+import { Container, Grid, Button, Card, Typography, Paper,CardContent,Modal } from '@mui/material';
 import { Armchair } from 'phosphor-react';
 import axiosInstance from './AxiosInstance';
 import Cookies from 'js-cookie';
@@ -20,9 +20,11 @@ const SeatBooking = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [ongoingSeatsData, setOngoingSeatsData] = useState([]);
   const [returnSeatsData, setReturnSeatsData] = useState([]);
-  const navigate = useNavigate();
+  const navigate = useNavigate();  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const [secondFlightSeatData, setSecondFlightSeatData] = useState([]);
-  const [timer, setTimer] = useState(10000); // 5 minutes in seconds
+  const [timer, setTimer] = useState(300); // 5 minutes in seconds
   const [timerInterval, setTimerInterval] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedOngoingSeats, setEditedOngoingSeats] = useState([]);
@@ -506,6 +508,8 @@ const SeatBooking = () => {
 
     else {
       console.log('mine')
+      setIsModalOpen(true);
+
       const combinedData = {
         booking: {
           bookingType: 'Oneway', // Assuming you want to set this explicitly for round trips
@@ -529,6 +533,7 @@ const SeatBooking = () => {
       console.log('Booking, FlightTicket, and FlightSeat created successfully');
 
       toast.success("Booking Made Successfully")
+      setIsModalOpen(false);
 
       const bookingId = combinedResponse.data.booking.bookingId;
       console.log(bookingId);
@@ -593,12 +598,14 @@ const SeatBooking = () => {
           tickets: validTicketsData,
         };
       
+        console.log(emailData)
         try {
           const response = await axiosInstance.post('Email/send', emailData);
           console.log(response.data); // Log the response from the server
       
           // You can handle success or further actions here
         } catch (error) {
+          consol.log(error)
           console.error('Error sending email:', error);
         }
       }
@@ -764,131 +771,95 @@ const SeatBooking = () => {
 
 
   return (
-    <Container className="mt-5" >
-      <Navbar />
-      <Grid container style={{marginTop:100}}>
-        <Grid item xs={12}>
-        <div className="timer-container">
-            <Card style={{ position: 'absolute', top: 10, right: 10, backgroundColor: '#ff0000', color: '#fff',marginTop:100 }}>
-      <CardContent>
-        <Typography variant="body2" className="timer">
-          Time Remaining: {Math.floor(timer / 60)}:{timer % 60 < 10 ? `0${timer % 60}` : timer % 60}
-        </Typography>
-      </CardContent>
-    </Card>
-            </div>
-          <Typography variant="h2">Select Your Seats - Ongoing</Typography>
-          <>
-            <Card sx={{ p: 3 }}>
+    <Container className="mt-5">
+  <Navbar />
+  <Grid container style={{ marginTop: 100 }}>
+    <Grid item xs={12}>
+      <div className="timer-container">
+        <Card style={{ position: 'absolute', top: 10, right: 10, backgroundColor: '#ff0000', color: '#fff', marginTop: 100 }}>
+          <CardContent>
+            <Typography variant="body2" className="timer">
+              Time Remaining: {Math.floor(timer / 60)}:{timer % 60 < 10 ? `0${timer % 60}` : timer % 60}
+            </Typography>
+          </CardContent>
+        </Card>
+      </div>
+      <Typography variant="h2">Select Your Seats - Ongoing</Typography>
+      <>
+        <Card sx={{ p: 3 }}>
 
-              <div >
-                <Typography variant="h5">Source to Connecting</Typography>
-                <Typography variant="h5" className="mt-3">
-                  <strong>Source ID:</strong> {sourceId}
-                  <span style={{ marginLeft: '10px' }}>
-                    <strong>Destination ID:</strong> {destinationId}
-                  </span>
-                </Typography>
-              </div>
-              {renderSeats(
-                ongoingSeatsData,
-                isEditing ? editedOngoingSeats : selectedOngoingSeats,
-                handleSeatClick,
-                isEditing,
-                false
-              )}
-            </Card>
-          </>
+          <div >
+            <Typography variant="h5">Source to Connecting</Typography>
+            <Typography variant="h5" className="mt-3">
+              <strong>Source ID:</strong> {sourceId}
+              <span style={{ marginLeft: '10px' }}>
+                <strong>Destination ID:</strong> {destinationId}
+              </span>
+            </Typography>
+          </div>
+          {renderSeats(
+            ongoingSeatsData,
+            isEditing ? editedOngoingSeats : selectedOngoingSeats,
+            handleSeatClick,
+            isEditing,
+            false
+          )}
+        </Card>
+      </>
+      <Card sx={{ p: 3, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+        <CardContent sx={{ marginRight: '16px' }}>
+          <strong>Selected Seats:</strong> {selectedOngoingSeats.join(', ')}
+        </CardContent>
+
+        <CardContent sx={{ marginRight: '16px' }}>
+          <strong>Selected Seat Count:</strong> {selectedOngoingSeatCount}
+        </CardContent>
+
+        <CardContent>
+          <Button onClick={() => handleConfirm('scheduleIdPassengers')}>Select Seats</Button>
+        </CardContent>
+      </Card>
+    </Grid>
+    {
+      selectedOngoingSeats.length > 0 && (
+        <Grid item xs={12} className="mt-5">
+          <Typography variant="h2">Select Your Seats - Return</Typography>
+          <Card sx={{ p: 3 }}>
+            <div>
+              <Typography variant="h5">Source to Connecting</Typography>
+              <Typography variant="h5" className="mt-3">
+                <strong>Source ID:</strong> {sourceId}
+                <span style={{ marginLeft: '10px' }}>
+                  <strong>Destination ID:</strong> {destinationId}
+                </span>
+              </Typography>
+            </div>
+            {renderSeats(
+              returnSeatsData,
+              selectedReturnSeats,
+              handleSeatClick,
+              false,
+              true
+            )}
+          </Card>
           <Paper sx={{ p: 3 }}>
             <Typography variant="div" className="mt-3">
-              <strong>Selected Seats:</strong> {selectedOngoingSeats.join(', ')}
+              <strong>Selected Seats:</strong> {selectedReturnSeats.join(', ')}
             </Typography>
-
             <Typography variant="div" className="mt-3">
-              <strong>Selected Seat Count:</strong> {selectedOngoingSeatCount}
+              <strong>Selected Seat Count:</strong> {selectedReturnSeatCount}
             </Typography>
-
-            <Button onClick={() => handleConfirm('scheduleIdPassengers')}>Select Seats</Button>
-
-
+            <Button onClick={() => handleConfirm('destinationScheduleIdPassengers')}>Select Seats</Button>
           </Paper>
         </Grid>
-        {
-          returnSeatsData.length > 0 ? (
-            <Grid item xs={12} className="mt-5">
-              <Typography variant="h2">Select Your Seats - Return</Typography>
-              <Card sx={{ p: 3 }}>
-                <div>
-                  <Typography variant="h5">Source to Connecting</Typography>
-                  <Typography variant="h5" className="mt-3">
-                    <strong>Source ID:</strong> {sourceId}
-                    <span style={{ marginLeft: '10px' }}>
-                      <strong>Destination ID:</strong> {destinationId}
-                    </span>
-                  </Typography>
-                </div>
-                {renderSeats(
-                  returnSeatsData,
-                  selectedReturnSeats,
-                  handleSeatClick,
-                  false,
-                  true
-                )}
-              </Card>
-              <Paper sx={{ p: 3 }}>
-                <Typography variant="div" className="mt-3">
-                  <strong>Selected Seats:</strong> {selectedReturnSeats.join(', ')}
-                </Typography>
-                <Typography variant="div" className="mt-3">
-                  <strong>Selected Seat Count:</strong> {selectedReturnSeatCount}
-                </Typography>
-                <Button onClick={() => handleConfirm('destinationScheduleIdPassengers')}>Select Seats</Button>
+      )
+    }
+  </Grid>
 
-              </Paper>
-            </Grid>
-          ) : (
-            <Grid item xs={12} className="mt-5">
-              <Typography variant="h2">Select Your Seats - Return</Typography>
-              <Card sx={{ p: 3 }}>
-                <div>
-                  <Typography variant="h5">Source to Connecting</Typography>
-                  <Typography variant="h5" className="mt-3">
-                    <strong>Source ID:</strong> {sourceId}
-                    <span style={{ marginLeft: '10px' }}>
-                      <strong>Destination ID:</strong> {destinationId}
-                    </span>
-                  </Typography>
-                </div>
-                {renderSeats(
-                  secondFlightSeatData, // Use secondFlightSeatData instead of returnSeatsData
-                  selectSecondAirlineReturnSeats,
-                  handleSeatClick,
-                  false,
-                  true
-                )}
-              </Card>
-              <Paper sx={{ p: 3 }}>
-                <Typography variant="div" className="mt-3">
-                  <strong>Selected Seats:</strong> {selectedReturnSeats.join(', ')}
-                </Typography>
-                <Typography variant="div" className="mt-3">
-                  <strong>Selected Seat Count:</strong> {selectedSecondAirlineSeatCount}
-                </Typography>
+  {canConfirm && <Button onClick={handleTicketConfirm}>Confirm</Button>}
 
-                <Button onClick={() => handleConfirm('destinationScheduleIdPassengers')}>Select Seats</Button>
+</Container>
 
-              </Paper>
-            </Grid>
-          )
-        }
-
-      </Grid>
-
-
-
-      {canConfirm && <Button onClick={handleTicketConfirm}>Confirm</Button>}
-
-    </Container>
   );
 };
 

@@ -15,9 +15,9 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Card,
-  CardMedia
+  Box
 } from '@mui/material';
+import video from "./anime.gif";
 import { Airplane, ArrowRight } from 'phosphor-react';
 import { useNavigate } from 'react-router-dom';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -28,6 +28,7 @@ import { airlinesapi } from './Constants'
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import './css/homepage.css'
+import GradientBackground from './GradientBackground';
 
 // import sanjaylogo from './css/image/logo-no-background.png';
 
@@ -43,10 +44,11 @@ const BookingComponent = () => {
   const [date, setDate] = useState('');
   const [finalIntegratedConnectingFlights, setFinalIntegratedConnectingFlights] = useState([]);
   const navigate = useNavigate();
-const [airportData,setAirportData]=useState([]);
+  const [airportData, setAirportData] = useState([]);
   const LoggedIn = sessionStorage.getItem('LoggedIn');
   const [isLoading, setIsLoading] = useState(false); // Add this line to define isLoading
 
+  const continueBooking = sessionStorage.getItem('continuewithoutlogin')
 
 
 
@@ -62,9 +64,9 @@ const [airportData,setAirportData]=useState([]);
     if (sessionStorage.getItem('LoggedIn') === 'true') {
       location.reload();
       sessionStorage.removeItem('LoggedIn');
-      sessionStorage.setItem('loggedIn',true);
+      sessionStorage.setItem('loggedIn', true);
     }
-    
+
 
     const fetchCities = async () => {
       try {
@@ -82,7 +84,7 @@ const [airportData,setAirportData]=useState([]);
     const airport = airportData.find((a) => a.airportId === airportId);
     return airport ? { city: airport.city, airportName: airport.airportName } : null;
   };
-  
+
   const getIntegratedFlightDetails = async (
     firstAirlines,
     secondAirlines,
@@ -213,14 +215,22 @@ const [airportData,setAirportData]=useState([]);
 
     if (!source) {
       toast.error("Source Airport is not Selected or Empty")
+      setLoading(false);
+
     }
     else if (!destination) {
       toast.error("Destination Airport is not Selected Or Empty")
+      setLoading(false);
+
     }
     else if (!date) {
       toast.error("Date Time is not Selected or Empty")
+      setLoading(false);
+
     } else if (source == destination) {
       toast.error("Source and Destination should not be same")
+      setLoading(false);
+
     }
     else {
       try {
@@ -231,19 +241,20 @@ const [airportData,setAirportData]=useState([]);
         setFlightSchedules(response.data);
         // Check if there are connecting flights
         const hasConnectingFlights = response.data.some(schedule => schedule.sourceToConnecting && schedule.connectingToDestination);
-        if(hasConnectingFlights){
+        if (hasConnectingFlights) {
           // sessionStorage.setItem('connnectingflight',true);
-          sessionStorage.setItem('source',source);
-          sessionStorage.setItem('destination',destination);
+          sessionStorage.setItem('source', source);
+          sessionStorage.setItem('destination', destination);
         }
         setHasConnectingFlights(hasConnectingFlights);
 
       } catch (response) {
+        toast.info(response.response.data);
         console.log(response.response.data)
         if (response.response.data == 'Invalid date. Please provide a future date.') {
           toast.error("Invalid date. Please provide a future date.");
         }
-        console.error('Error fetching flight schedules:', response);
+        console.log('Error fetching flight schedules:', response.data);
       } finally {
         setLoading(false);
       }
@@ -288,14 +299,15 @@ const [airportData,setAirportData]=useState([]);
     sessionStorage.setItem('secondFlightAirlineName', secondAirlineName);
     sessionStorage.setItem('dateTime', secondDateTime);
 
+
     if (!bookingType) {
       toast.error('Booking Type is not Selected or Empty');
     } else {
       if (bookingType === 'SingleTrip') {
-        if(continueBooking!=='true'){
-      navigate('/')
 
-    }
+        if (continueBooking == 'true') {
+          navigate('/')
+        }
         navigate('/booking');
       } else if (bookingType === 'RoundTrip') {
         if (!bookingType) {
@@ -317,11 +329,23 @@ const [airportData,setAirportData]=useState([]);
       toast.error("Booking Type is not Selected or Empty")
     } else {
       if (bookingType === 'SingleTrip') {
+        if (continueBooking == 'true') {
+          console.log(continueBooking)
+          navigate('/')
+          sessionStorage.setItem('continuewithoutlogin', false)
+        } else {
+          navigate('/booking');
+        }
 
-        navigate('/booking');
       } else if (bookingType === 'RoundTrip') {
         sessionStorage.setItem('connectingFlightRoundTrip', true)
-
+        if (continueBooking == 'true') {
+          console.log(continueBooking)
+          navigate('/')
+          sessionStorage.setItem('continuewithoutlogin', false)
+        } else {
+          navigate('/round-trip-return-flight');
+        }
         if (!bookingType) {
           toast.error("Booking Type is not Selected or Empty")
         }
@@ -335,22 +359,48 @@ const [airportData,setAirportData]=useState([]);
   }
 
 
+  const getCurrentDate = () => {
+    console.log('callinggetcurrentdate')
+    const currentDate = new Date();
+    const year = currentDate.getFullYear();
+    let month = currentDate.getMonth() + 1;
+    month = month < 10 ? `0${month}` : month;
+    const day = currentDate.getDate();
+    console.log(day)
+    return `${year}-${month}-${day}`;
+  };
+
+  const getMaxDate = () => {
+    console.log('calling gtmaxdte')
+    const currentDate = new Date();
+    currentDate.setFullYear(2024); // Set the year to 2024
+    currentDate.setMonth(currentDate.getMonth() + 5);
+    const year = currentDate.getFullYear();
+    let month = currentDate.getMonth() + 1;
+    month = month < 10 ? `0${month}` : month;
+    const day = currentDate.getDate();
+    console.log(date)
+    return `${year}-${month}-${day}`;
+  };
+
+  const handleDateChange = (selectedDate) => {
+    // Add your logic to handle the selected date
+    setDate(selectedDate);
+  };
 
   return (
     <>
+        <GradientBackground  >
+
       <div className='additional-content'>
         <Navbar />
         <ToastContainer />
-        {/* <div style={{ margin: '20px', position: 'absolute', top: 0, left: 0 }}>
-      <CardMedia
-        component="img"
-        width="100"
-        height="240"
-        image={sanjaylogo}
-        alt="Sanjay Logo"
-      />
-    </div> */}
-        <Table style={{ marginTop: 150, width: 300 }}>
+        <div style={{ margin: '20px', position: 'absolute', top: 0, left: 0 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', marginRight: '16px' }}>
+          <img src={video} alt="SanjayAirline Logo" style={{ marginLeft: 245, height: '450px', width: '650px', borderRadius: 171}} />
+        </Box>
+    </div>
+        <Table style={{ marginTop: 550, width: 300 }}>
           <TableHead>
             <TableRow>
               <TableCell colSpan={4}>
@@ -413,14 +463,23 @@ const [airportData,setAirportData]=useState([]);
                       onChange={(e) => handleDropdownChange(e.target.value)}
                     >
                       <MenuItem value="Select">Select</MenuItem>
-                      <MenuItem value="SingleTrip">Single Trip</MenuItem>
+                      <MenuItem value="SingleTrip">Oneway</MenuItem>
                       <MenuItem value="RoundTrip">Round Trip</MenuItem>
                     </Select>
                   </FormControl>
 
                   <FormControl variant="outlined" style={{ width: '100%', marginTop: '10px' }}>
-                    <TextField type="date" id="departure-date" value={date} onChange={(e) => setDate(e.target.value)} />
-                  </FormControl>
+        <TextField
+          type="date"
+          id="departure-date"
+          value={date}
+          onChange={(e) => handleDateChange(e.target.value)}
+          inputProps={{
+            min: getCurrentDate(),
+            max: getMaxDate(),
+          }}
+        />
+      </FormControl>
 
                 </div>
               </div>
@@ -478,7 +537,7 @@ const [airportData,setAirportData]=useState([]);
                           <TableBody>
                             <TableRow key={schedule.sourceToConnecting.scheduleId}>
                               <TableCell>{schedule.sourceToConnecting.flightName}</TableCell>
-                              <TableCell>{getAirportDetails(schedule.sourceToConnecting.sourceAirportId)?.city } - {getAirportDetails(schedule.sourceToConnecting.sourceAirportId)?.airportName }</TableCell>
+                              <TableCell>{getAirportDetails(schedule.sourceToConnecting.sourceAirportId)?.city} - {getAirportDetails(schedule.sourceToConnecting.sourceAirportId)?.airportName}</TableCell>
                               <TableCell>{getAirportDetails(schedule.sourceToConnecting.destinationAirportId)?.city} - {getAirportDetails(schedule.sourceToConnecting.destinationAirportId)?.airportName}</TableCell>
                               <TableCell>{schedule.sourceToConnecting.flightDuration}</TableCell>
                               <TableCell>{schedule.sourceToConnecting.dateTime.split('T')[0]}</TableCell>
@@ -634,6 +693,7 @@ const [airportData,setAirportData]=useState([]);
       </div>
 
 
+      </GradientBackground  >
 
     </>
   );

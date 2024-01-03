@@ -10,6 +10,8 @@ import {
   TableRow,
   Paper,
   Button,
+  CircularProgress,
+  TablePagination,
 } from '@mui/material';
 import BookingDetailsModal from './CancelationViewPage';
 import Navbar from './Navbar';
@@ -21,6 +23,10 @@ const CancelBookingPage = () => {
   const [selectedBookingId, setSelectedBookingId] = useState('');
   const [cancellationMessage, setCancellationMessage] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [flightDate, setFlightDate] = useState(''); // Added flightDate state
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   useEffect(() => {
     const storedUserId = sessionStorage.getItem('userId');
@@ -28,23 +34,23 @@ const CancelBookingPage = () => {
       setUserId(storedUserId);
     }
 
-    const fetchBookings = async () => {
-      try {
-        const userId = sessionStorage.getItem('userId');
-        //          `https://localhost:7285/api/Bookings/CancelBooking/${userId}`,
-
-        const response = await axiosInstance.get(
-          `Bookings/CancelBooking/${userId}`
-          
-        );
-        setBookingDetails(response.data);
-      } catch (error) {
-        console.log('Error fetching bookings:', error);
-      }
-    };
-
     fetchBookings();
-  }, [userId]);
+  }, [userId, flightDate, page, rowsPerPage]);
+
+  const fetchBookings = async () => {
+    try {
+      setLoading(true);
+      const userId = sessionStorage.getItem('userId');
+      const response = await axiosInstance.get(`Bookings/CancelBooking/${userId}`, {
+        params: { flightDate },
+      });
+      setBookingDetails(response.data);
+      setLoading(false);
+    } catch (error) {
+      console.log('Error fetching bookings:', error);
+      setLoading(false);
+    }
+  };
 
   const handleViewDetails = (bookingId) => {
     setSelectedBookingId(bookingId);
@@ -55,11 +61,35 @@ const CancelBookingPage = () => {
     setIsModalOpen(false);
   };
 
+  const handleSearch = () => {
+    setPage(0);
+    fetchBookings();
+  };
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
   return (
     <div style={{ marginTop: 50 }}>
       <h1>Booking Cancellation Page</h1>
 
       <Navbar />
+
+      <div style={{ marginBottom: 20 }}>
+        <input
+          type="date" // Use input type 'date' for selecting flightDate
+          value={flightDate}
+          onChange={(e) => setFlightDate(e.target.value)}
+        />
+        <button onClick={handleSearch}>Search</button>
+      </div>
+
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
@@ -71,23 +101,31 @@ const CancelBookingPage = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {bookingDetails.length > 0 ? (
-              bookingDetails.map((booking) => (
-                <TableRow key={booking.bookingId}>
-                  <TableCell>{booking.bookingId}</TableCell>
-                  <TableCell>{booking.status}</TableCell>
-                  <TableCell>{booking.bookingType}</TableCell>
-                  <TableCell>
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={() => handleViewDetails(booking.bookingId)}
-                    >
-                      View Details
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={4} style={{ textAlign: 'center' }}>
+                  <CircularProgress />
+                </TableCell>
+              </TableRow>
+            ) : bookingDetails.length > 0 ? (
+              bookingDetails
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((booking) => (
+                  <TableRow key={booking.bookingId}>
+                    <TableCell>{booking.bookingId}</TableCell>
+                    <TableCell>{booking.status}</TableCell>
+                    <TableCell>{booking.bookingType}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => handleViewDetails(booking.bookingId)}
+                      >
+                        View Details
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
             ) : (
               <TableRow>
                 <TableCell colSpan={4}>No bookings found.</TableCell>
@@ -95,6 +133,15 @@ const CancelBookingPage = () => {
             )}
           </TableBody>
         </Table>
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={bookingDetails.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
       </TableContainer>
       {cancellationMessage && <p>{cancellationMessage}</p>}
       <BookingDetailsModal

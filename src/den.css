@@ -1,16 +1,19 @@
 .flight-container {
-    position: relative;
-    background-image: url('assets/flight.jpeg');
-    background-size: cover;
-    background-position: center;
-    width: 500px;
-    height: 1300px; /* Adjust the height as needed */
-    position: relative;
-    display: flex;
-    flex-direction: column; /* Arrange seats vertically */
-    align-items: center;
-    justify-content: center;
-  }
+  position: relative;
+  background-image: url('assets/flight.png');
+  background-size: cover;
+  background-position: center bottom; /* Center horizontally and align to the bottom */
+  width: 380px;
+  height: 980px; /* Adjust the height as needed */
+  position: relative;
+  display: flex;
+  margin-top: 100px;
+  margin-left: 370px;
+  flex-direction: column; /* Arrange seats vertically */
+  align-items: center;
+  justify-content: center;
+}
+
   
   .flight-container .seat {
     position: relative;

@@ -19,6 +19,7 @@ import CancelBookingPage from './CancellationPage';
 import GenerateTicket from './GenerateTicket';
 import Confrim from './Confirm';
 import BookingCard from'./AdminHistory';
+import ChangePassword from './changepassword';
 function App() {
   return (
     <Router>
@@ -44,6 +45,7 @@ function App() {
         <Route path='/ticket' element={<GenerateTicket/>}/>
         <Route path='/confirm' element={<Confrim/>}/>
         <Route path='/admin-history' element={<BookingCard/>}/>
+        <Route path='/change-password' element={<ChangePassword/>}/>
         </Routes>
       </div>
     
