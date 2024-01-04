@@ -5,15 +5,15 @@ export const airlinesapi = {
   //       apiPath: 'https://localhost:7285/api/',
   //   },
 
-    // mahaairline: {
-    //   name: 'Maha Airline',
-    //   apiPath: `http://192.168.10.62:91/api/`,
-    // },
+    mahaairline: {
+      name: 'Maha Airline',
+      apiPath: `http://192.168.10.62:91/api/`,
+    },
 
-    // rethuairline: {
-    //   name: 'Rethu Airline',
-    //   apiPath: 'http://192.168.10.83:94/api/',
-    // },
+    rethuairline: {
+      name: 'Rethu Airline',
+      apiPath: 'http://192.168.10.83:94/api/',
+    },
     // thillaiirline: {
     //   name: 'Thillai Airline',
     //   apiPath: 'http://192.168.10.77:86/api/',
@@ -34,14 +34,14 @@ export const airlinesapi = {
     //   name: 'Sashaank Airline',
     //   apiPath: 'http://192.168.10.53:86/api/',
     // },
-    // hariniairline: {
-    //   name: 'Harini Airline',
-    //   apiPath: 'http://192.168.10.78:89/api/',
-    // },
-    // spirityairline: {
-    //   name: 'Spirity Airline',
-    //   apiPath: 'http://192.168.10.57:90/api/',
-    // },
+    hariniairline: {
+      name: 'Harini Airline',
+      apiPath: 'http://192.168.10.78:89/api/',
+    },
+    spirityairline: {
+      name: 'Spirity Airline',
+      apiPath: 'http://192.168.10.57:90/api/',
+    },
     // suriyaairline: {
     //   name: 'Suriya Airline',
     //   apiPath: 'http://192.168.10.71:98/api/',
@@ -59,10 +59,10 @@ export const airlinesapi = {
     //   name: 'Akshya Airline',
     //   apiPath: 'http://192.168.10.61:92/api/',
     // },
-    // abhiramairline: {
-    //   name: 'Abhiram Airline',
-    //   apiPath: 'http://192.168.10.89:83/api/',
-    // },
+    abhiramairline: {
+      name: 'Abhiram Airline',
+      apiPath: 'http://192.168.10.89:83/api/',
+    },
 
     sanoshairline: {
       name: 'Sanosh Airline',
@@ -73,13 +73,13 @@ export const airlinesapi = {
     // Add more airlines as needed
   };
 export const sanjayairline = {
-    sanjayairline: {
-        name: 'Sanjay Airline',
-        apiPath: 'https://localhost:7285/api/',
-    },
+    // sanjayairline: {
+    //     name: 'Sanjay Airline',
+    //     apiPath: 'https://localhost:7285/api/',
+    // },
 
-      //  sanjayairline: {
-  //       name: 'Sanjay Airline',
-  //       apiPath: 'https://localhost:7285/api/',
-  //   },
+       sanjayairline: {
+        name: 'Sanjay Airline',
+        apiPath: 'http://192.168.10.54:88/api/',
+    },
 }

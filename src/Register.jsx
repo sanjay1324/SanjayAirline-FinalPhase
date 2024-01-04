@@ -21,6 +21,7 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import backgroundVideo from './css/image/flight.mp4'; // Import your video file here
 import { makeStyles } from '@material-ui/core/styles';
 import axios from 'axios';
+import { toast, ToastContainer } from 'react-toastify';
 
 // function Copyright(props) {
 //   return (
@@ -115,6 +116,8 @@ export default function SignUp() {
       .then((data) => {
         // Handle the response from the API (registration response)
         console.log('Registration response:', data);
+
+        toast.success("Registration Succesfully!Navigate to Login Page")
         // Redirect or perform other actions as needed
         console.log(email)
 
@@ -142,6 +145,7 @@ export default function SignUp() {
 
   return (
     <div className='login' style={{ position: 'relative', height: '100vh', overflow: 'hidden' }}>
+      <ToastContainer/>
       <video autoPlay loop muted style={{
         position: 'absolute',
         width: '120%',

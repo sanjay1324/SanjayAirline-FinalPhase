@@ -61,7 +61,7 @@ const Booking = () => {
    
 
     } catch (error) {
-      console.error('Error fetching flights schedule:', error);
+      console.log('Error fetching flights schedule:', error);
     } finally {
       setLoading(false);
     }
@@ -77,7 +77,7 @@ const Booking = () => {
       const destinationAirportId = await getAirportIdByCityName(interChangeDestination);
 
       if (!sourceAirportId || !destinationAirportId) {
-        console.error('Error: sourceAirportId or destinationAirportId is null.');
+        console.log('Error: sourceAirportId or destinationAirportId is null.');
         return;
       }
 
@@ -120,10 +120,10 @@ const Booking = () => {
       if (response.data && response.data.length > 0) {
         setFlights(response.data);
       } else {
-        console.error('Error: No schedule data found in the API response.');
+        console.log('Error: No schedule data found in the API response.');
       }
     } catch (error) {
-      console.error('Error fetching schedule details:', error);
+      console.log('Error fetching schedule details:', error);
     }
   };
 
@@ -138,11 +138,11 @@ const Booking = () => {
       if (airportResponse.data && airportResponse.data.length > 0) {
         return airportResponse.data;
       } else {
-        console.error(`Error: No airport data found for ${cityName}.`);
+        console.log(`Error: No airport data found for ${cityName}.`);
         return null;
       }
     } catch (error) {
-      console.error(`Error fetching airport details for ${cityName}:`, error);
+      console.log(`Error fetching airport details for ${cityName}:`, error);
       return null;
     }
   };
@@ -153,7 +153,7 @@ const Booking = () => {
     try {
       await fetchFlightsSchedule();
     } catch (error) {
-      console.error('Error handling schedule selection:', error.message);
+      console.log('Error handling schedule selection:', error.message);
       // Handle the error
     }
   };

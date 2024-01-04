@@ -141,7 +141,7 @@ const TicketGenerator = () => {
           });
         }
       } catch (error) {
-        console.error('Error fetching booking details:', error);
+        console.log('Error fetching booking details:', error);
       } finally {
         setLoading(false);
       }
@@ -166,7 +166,7 @@ const TicketGenerator = () => {
 
       return airportResponse.data.city;
     } catch (error) {
-      console.error('Error fetching airport details:', error);
+      console.log('Error fetching airport details:', error);
       return '';
     }
   };
@@ -180,7 +180,7 @@ const TicketGenerator = () => {
       );
       return scheduleResponse.data.dateTime;
     } catch (error) {
-      console.error('Error fetching flight details:', error);
+      console.log('Error fetching flight details:', error);
       return '';
     }
   };

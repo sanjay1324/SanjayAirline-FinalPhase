@@ -70,7 +70,7 @@ const App = () => {
         const response = await axios.get('http://192.168.10.54:88/api/PartnerBookings');
         setBookings(response.data);
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.log('Error fetching data:', error);
       }
     };
 

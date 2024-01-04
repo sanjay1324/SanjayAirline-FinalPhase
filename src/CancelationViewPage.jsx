@@ -22,35 +22,69 @@ const BookingDetailsModal = ({ isOpen, onClose, bookingId }) => {
     if (!bookingDetails || !bookingDetails.tickets) {
       return;
     }
-
+  
     const pdf = new jsPDF();
-    pdf.text('Booking Details', 10, 10);
-
-    // Headers
-    const headers = [['Ticket No', 'Booking Type', 'Name', 'Seat No', 'Source City', 'Destination City', 'Gender']];
-
-    // Data
-    const data = bookingDetails.tickets.map((ticket) => [
-      ticket.ticketNo,
-      bookingDetails.booking.bookingType,
-      ticket.name,
-      ticket.seatNo,
-      ticket.sourceCity,
-      ticket.destinationCity,
-      ticket.gender,
-    ]);
-
-    // Add table to PDF
-    pdf.autoTable({
-      head: headers,
-      body: data,
-      startY: 20,
+  
+    const addBoardingPass = (ticket) => {
+      pdf.setFont('Arial', 'normal');
+      pdf.setFontSize(12);
+  
+      pdf.text('Boarding Pass', 20, 15);
+      pdf.text(`Ticket No: ${ticket.ticketNo}`, 20, 25);
+      pdf.text(`Seat No: ${ticket.seatNo}`, 20, 35);
+      pdf.text(`Name: ${ticket.name}`, 20, 45);
+      pdf.text(`Age: ${ticket.age}`, 20, 55);
+      pdf.text(`Gender: ${ticket.gender}`, 20, 65);
+      pdf.text(`Source: ${ticket.sourceCity}`, 20, 75);
+      pdf.text(`Destination: ${ticket.destinationCity}`, 20, 85);
+      pdf.text(`Flight Date: ${ticket.flightDate}`, 20, 95);
+      pdf.text(`Flight Time: ${ticket.flightTime}`, 20, 105);
+  
+      pdf.setLineWidth(0.5);
+      pdf.line(20, 115, 190, 115);
+  
+      pdf.addPage();
+    };
+  
+    const addTicketDetailsPage = (ticket) => {
+      addBoardingPass(ticket);
+  
+      pdf.text('Booking Details', 10, 10);
+  
+      // Headers
+      const headers = [['Ticket No', 'Booking Type', 'Name', 'Seat No', 'Source City', 'Destination City', 'Gender']];
+  
+      // Data
+      const data = [[
+        ticket.ticketNo,
+        bookingDetails.booking.bookingType,
+        ticket.name,
+        ticket.seatNo,
+        ticket.sourceCity,
+        ticket.destinationCity,
+        ticket.gender,
+      ]];
+  
+      // Add table to PDF
+      pdf.autoTable({
+        head: headers,
+        body: data,
+        startY: 20,
+      });
+  
+      // Save PDF for the current ticket
+      pdf.addPage();
+    };
+  
+    // Add a page for each ticket
+    bookingDetails.tickets.forEach((ticket) => {
+      addTicketDetailsPage(ticket);
     });
-
-    // Save PDF
+  
+    // Save the overall PDF
     pdf.save('BookingDetails.pdf');
   };
-
+  
   useEffect(() => {
     const fetchBookingDetails = async () => {
       try {
@@ -97,7 +131,7 @@ const BookingDetailsModal = ({ isOpen, onClose, bookingId }) => {
           tickets: ticketsWithDetails,
         });
       } catch (error) {
-        console.error('Error fetching booking details:', error);
+        console.log('Error fetching booking details:', error);
       }
     };
 
@@ -121,7 +155,7 @@ const BookingDetailsModal = ({ isOpen, onClose, bookingId }) => {
       setSnackbarOpen(true);
       onClose();
     } catch (error) {
-      console.error('Error cancelling booking:', error);
+      console.log('Error cancelling booking:', error);
     } finally {
       setConfirmationOpen(false);
     }
@@ -182,7 +216,7 @@ const BookingDetailsModal = ({ isOpen, onClose, bookingId }) => {
             window.location.reload();
           }, 2000);
         } catch (error) {
-          console.error(error);
+          console.log(error);
           toast.error('Error cancelling ticket');
         }
       } else {
@@ -191,7 +225,7 @@ const BookingDetailsModal = ({ isOpen, onClose, bookingId }) => {
 
     } catch (error) {
       console.log(error)
-      console.error('Error Ticket Cancelling booking:', error);
+      console.log('Error Ticket Cancelling booking:', error);
     }
 
 

@@ -772,59 +772,18 @@ const SeatBooking = () => {
 
   return (
     <Container className="mt-5">
-  <Navbar />
-  <Grid container style={{ marginTop: 100 }}>
-    <Grid item xs={12}>
-      <div className="timer-container">
-        <Card style={{ position: 'absolute', top: 10, right: 10, backgroundColor: '#ff0000', color: '#fff', marginTop: 100 }}>
-          <CardContent>
-            <Typography variant="body2" className="timer">
-              Time Remaining: {Math.floor(timer / 60)}:{timer % 60 < 10 ? `0${timer % 60}` : timer % 60}
-            </Typography>
-          </CardContent>
-        </Card>
-      </div>
-      <Typography variant="h2">Select Your Seats - Ongoing</Typography>
-      <>
-        <Card sx={{ p: 3 }}>
-
-          <div >
-            <Typography variant="h5">Source to Connecting</Typography>
-            <Typography variant="h5" className="mt-3">
-              <strong>Source ID:</strong> {sourceId}
-              <span style={{ marginLeft: '10px' }}>
-                <strong>Destination ID:</strong> {destinationId}
-              </span>
-            </Typography>
-          </div>
-          {renderSeats(
-            ongoingSeatsData,
-            isEditing ? editedOngoingSeats : selectedOngoingSeats,
-            handleSeatClick,
-            isEditing,
-            false
-          )}
-        </Card>
-      </>
-      <Card sx={{ p: 3, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-        <CardContent sx={{ marginRight: '16px' }}>
-          <strong>Selected Seats:</strong> {selectedOngoingSeats.join(', ')}
-        </CardContent>
-
-        <CardContent sx={{ marginRight: '16px' }}>
-          <strong>Selected Seat Count:</strong> {selectedOngoingSeatCount}
-        </CardContent>
-
-        <CardContent>
-          <Button onClick={() => handleConfirm('scheduleIdPassengers')}>Select Seats</Button>
-        </CardContent>
-      </Card>
-    </Grid>
-    {
-      selectedOngoingSeats.length > 0 && (
-        <Grid item xs={12} className="mt-5">
-          <Typography variant="h2">Select Your Seats - Return</Typography>
+    <Navbar />
+    <Grid container>
+      <Grid item xs={12}>
+        <div className="timer-container">
+          <Typography variant="body2" className="timer">
+            {Math.floor(timer / 60)}:{timer % 60 < 10 ? `0${timer % 60}` : timer % 60}
+          </Typography>
+        </div>
+        <Typography variant="h2">Select Your Seats - Ongoing</Typography>
+        <>
           <Card sx={{ p: 3 }}>
+
             <div>
               <Typography variant="h5">Source to Connecting</Typography>
               <Typography variant="h5" className="mt-3">
@@ -835,30 +794,102 @@ const SeatBooking = () => {
               </Typography>
             </div>
             {renderSeats(
-              returnSeatsData,
-              selectedReturnSeats,
+              ongoingSeatsData,
+              isEditing ? editedOngoingSeats : selectedOngoingSeats,
               handleSeatClick,
-              false,
-              true
+              isEditing,
+              false
             )}
           </Card>
-          <Paper sx={{ p: 3 }}>
-            <Typography variant="div" className="mt-3">
-              <strong>Selected Seats:</strong> {selectedReturnSeats.join(', ')}
-            </Typography>
-            <Typography variant="div" className="mt-3">
-              <strong>Selected Seat Count:</strong> {selectedReturnSeatCount}
-            </Typography>
-            <Button onClick={() => handleConfirm('destinationScheduleIdPassengers')}>Select Seats</Button>
-          </Paper>
-        </Grid>
-      )
-    }
-  </Grid>
+        </>
+        <Paper sx={{ p: 3 }}>
+          <Typography variant="div" className="mt-3">
+            <strong>Selected Seats:</strong> {selectedOngoingSeats.join(', ')}
+          </Typography>
 
-  {canConfirm && <Button onClick={handleTicketConfirm}>Confirm</Button>}
+          <Typography variant="div" className="mt-3">
+            <strong>Selected Seat Count:</strong> {selectedOngoingSeatCount}
+          </Typography>
 
-</Container>
+          <Button onClick={() => handleConfirm('scheduleIdPassengers')}>Select Seats</Button>
+
+
+        </Paper>
+      </Grid>
+      {
+        returnSeatsData.length > 0 ? (
+          <Grid item xs={12} className="mt-5">
+            <Typography variant="h2">Select Your Seats - Return</Typography>
+            <Card sx={{ p: 3 }}>
+              <div>
+                <Typography variant="h5">Source to Connecting</Typography>
+                <Typography variant="h5" className="mt-3">
+                  <strong>Source ID:</strong> {sourceId}
+                  <span style={{ marginLeft: '10px' }}>
+                    <strong>Destination ID:</strong> {destinationId}
+                  </span>
+                </Typography>
+              </div>
+              {renderSeats(
+                returnSeatsData,
+                selectedReturnSeats,
+                handleSeatClick,
+                false,
+                true
+              )}
+            </Card>
+            <Paper sx={{ p: 3 }}>
+              <Typography variant="div" className="mt-3">
+                <strong>Selected Seats:</strong> {selectedReturnSeats.join(', ')}
+              </Typography>
+              <Typography variant="div" className="mt-3">
+                <strong>Selected Seat Count:</strong> {selectedReturnSeatCount}
+              </Typography>
+              <Button onClick={() => handleConfirm('destinationScheduleIdPassengers')}>Select Seats</Button>
+
+            </Paper>
+          </Grid>
+        ) : (
+          <Grid item xs={12} className="mt-5">
+            <Typography variant="h2">Select Your Seats - Return</Typography>
+            <Card sx={{ p: 3 }}>
+              <div>
+                <Typography variant="h5">Source to Connecting</Typography>
+                <Typography variant="h5" className="mt-3">
+                  <strong>Source ID:</strong> {sourceId}
+                  <span style={{ marginLeft: '10px' }}>
+                    <strong>Destination ID:</strong> {destinationId}
+                  </span>
+                </Typography>
+              </div>
+              {renderSeats(
+                secondFlightSeatData, // Use secondFlightSeatData instead of returnSeatsData
+                selectSecondAirlineReturnSeats,
+                handleSeatClick,
+                false,
+                true
+              )}
+            </Card>
+            <Paper sx={{ p: 3 }}>
+              <Typography variant="div" className="mt-3">
+                <strong>Selected Seats:</strong> {selectedReturnSeats.join(', ')}
+              </Typography>
+              <Typography variant="div" className="mt-3">
+                <strong>Selected Seat Count:</strong> {selectedSecondAirlineSeatCount}
+              </Typography>
+
+              <Button onClick={() => handleConfirm('destinationScheduleIdPassengers')}>Select Seats</Button>
+
+            </Paper>
+          </Grid>
+        )
+      }
+
+    </Grid>
+
+
+    {canConfirm && <Button onClick={handleTicketConfirm} style={{margin:20}}>Confirm</Button>}
+  </Container>
 
   );
 };

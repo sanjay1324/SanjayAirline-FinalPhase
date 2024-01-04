@@ -126,9 +126,9 @@ const ConfirmationPage = () => {
 
           sessionStorage.setItem("isBooked",true);
           // Show success toast after a delay
-          // setTimeout(() => {
-          //   navigate('/ticket');
-          // }, 3000); // Delay in milliseconds
+          setTimeout(() => {
+            navigate('/ticket');
+          }, 3000); // Delay in milliseconds
         }
       }
 

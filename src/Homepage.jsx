@@ -72,9 +72,10 @@ const BookingComponent = () => {
       try {
         const response = await axiosInstance.get('Airports');
         setCities(response.data);
+        
         setAirportData(response.data);
       } catch (error) {
-        console.error('Error fetching cities:', error);
+        console.log('Error fetching cities:', error);
       }
     };
     fetchCities();
@@ -152,7 +153,7 @@ const BookingComponent = () => {
                             });
                           }
                         } catch (error) {
-                          console.error(error);
+                          console.log(error);
                         }
                       }
                     )
@@ -161,7 +162,7 @@ const BookingComponent = () => {
               );
             }
           } catch (error) {
-            console.error(error);
+            console.log(error);
           }
         }
       )

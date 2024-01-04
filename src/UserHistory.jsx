@@ -53,7 +53,7 @@ const UserHistory = () => {
         }
 
         if (!scheduleId) {
-          console.error('No valid scheduleId found for booking:', booking);
+          console.log('No valid scheduleId found for booking:', booking);
           return null;
         }
 
@@ -76,14 +76,14 @@ const UserHistory = () => {
             flightTime,
           };
         } catch (error) {
-          console.error('Error fetching additional details for a booking:', error);
+          console.log('Error fetching additional details for a booking:', error);
           return null;
         }
       }));
 
       setBookingHistory(bookingsWithDetails.filter((booking) => booking !== null));
     } catch (error) {
-      console.error('Error fetching booking history:', error);
+      console.log('Error fetching booking history:', error);
     }
     setLoading(false);
   };

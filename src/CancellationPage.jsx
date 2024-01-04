@@ -16,6 +16,7 @@ import {
 import BookingDetailsModal from './CancelationViewPage';
 import Navbar from './Navbar';
 import axiosInstance from './AxiosInstance';
+import GradientBackground from './GradientBackground';
 
 const CancelBookingPage = () => {
   const [userId, setUserId] = useState('');
@@ -76,9 +77,10 @@ const CancelBookingPage = () => {
   };
 
   return (
+    <GradientBackground>
+
     <div style={{ marginTop: 50 }}>
       <h1>Booking Cancellation Page</h1>
-
       <Navbar />
 
       <div style={{ marginBottom: 20 }}>
@@ -150,6 +152,8 @@ const CancelBookingPage = () => {
         bookingId={selectedBookingId}
       />
     </div>
+    </GradientBackground>
+
   );
 };
 
